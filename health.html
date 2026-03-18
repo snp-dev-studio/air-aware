@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Air Aware — Health Advisories</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<style>
+:root{
+  --teal:#0d9488;--teal-light:#14b8a6;--teal-dark:#0f766e;
+  --bg:#f1f5f9;--bg2:#e8f0f7;--card:#ffffff;--card-border:rgba(0,0,0,0.08);
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --nav-bg:rgba(255,255,255,0.95);--nav-border:rgba(0,0,0,0.08);
+  --input-bg:#ffffff;--input-border:#e2e8f0;
+  --shadow:0 4px 24px rgba(0,0,0,0.07);--shadow-lg:0 8px 32px rgba(0,0,0,0.11);
+}
+[data-theme="dark"]{
+  --teal:#f59e0b;--teal-light:#fbbf24;--teal-dark:#d97706;
+  --bg:#0a0a0f;--bg2:#0f0f18;--card:#1a1a24;--card-border:rgba(255,255,255,0.07);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+  --nav-bg:rgba(10,10,15,0.96);--nav-border:rgba(255,255,255,0.07);
+  --input-bg:#0f0f18;--input-border:rgba(255,255,255,0.1);
+  --shadow:0 4px 24px rgba(0,0,0,0.3);--shadow-lg:0 8px 32px rgba(0,0,0,0.5);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .4s,color .4s;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);backdrop-filter:blur(16px);height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;}
+.nav-logo{display:flex;align-items:center;gap:7px;text-decoration:none;flex-shrink:0;}
+.nav-logo img{width:26px;height:26px;object-fit:contain;border-radius:6px;}
+.nav-logo span{font-size:1rem;font-weight:700;color:var(--teal);}
+.nav-links{display:flex;align-items:center;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;}
+.nav-links::-webkit-scrollbar{display:none;}
+.nav-link{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;font-size:0.78rem;font-weight:500;color:var(--text2);text-decoration:none;white-space:nowrap;transition:all .2s;}
+.nav-link:hover{background:rgba(13,148,136,0.08);color:var(--teal);}
+.nav-link.active{background:rgba(13,148,136,0.12);color:var(--teal);font-weight:600;}
+[data-theme="dark"] .nav-link:hover,[data-theme="dark"] .nav-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto;}
+.nav-user{display:flex;align-items:center;gap:6px;font-size:0.8rem;font-weight:600;color:var(--text2);}
+.nav-user .dot{width:8px;height:8px;background:#f59e0b;border-radius:50%;}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:none;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:all .2s;}
+.icon-btn:hover{background:var(--card);color:var(--teal);}
+.btn-logout{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--card-border);background:transparent;color:var(--text2);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;}
+.btn-logout:hover{border-color:#ef4444;color:#ef4444;}
+.hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:4px;}
+.hamburger span{width:20px;height:2px;background:var(--text);border-radius:2px;display:block;}
+.mobile-drawer{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;z-index:999;background:var(--nav-bg);backdrop-filter:blur(16px);padding:16px;flex-direction:column;gap:4px;overflow-y:auto;}
+.mobile-drawer.open{display:flex;}
+.drawer-link{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:0.95rem;font-weight:500;color:var(--text2);text-decoration:none;transition:all .2s;}
+.drawer-link:hover,.drawer-link.active{background:rgba(13,148,136,0.1);color:var(--teal);}
+[data-theme="dark"] .drawer-link:hover,[data-theme="dark"] .drawer-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.drawer-divider{height:1px;background:var(--card-border);margin:8px 0;}
+.drawer-user{display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:0.95rem;font-weight:600;color:var(--text);}
+
+/* MAIN */
+.main{padding:72px 16px 100px;max-width:960px;margin:0 auto;}
+
+/* PAGE HERO */
+.page-hero{text-align:center;padding:24px 0 28px;}
+.hero-icon{font-size:2.2rem;margin-bottom:10px;display:block;}
+.page-hero h1{font-size:clamp(1.4rem,4vw,2rem);font-weight:800;color:var(--text);margin-bottom:6px;}
+.page-hero p{font-size:0.88rem;color:var(--text2);}
+
+/* LIVE AQI BANNER */
+.live-banner{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow);}
+.live-dot{width:10px;height:10px;border-radius:50%;background:#22c55e;animation:livePulse 1.5s ease-in-out infinite;flex-shrink:0;}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.3);}}
+.live-text{flex:1;font-size:0.85rem;color:var(--text2);}
+.live-text strong{color:var(--text);}
+.live-aqi-val{font-size:1.3rem;font-weight:800;}
+.live-badge{padding:4px 14px;border-radius:99px;font-size:0.75rem;font-weight:700;color:white;}
+.btn-live-refresh{padding:6px 14px;border-radius:8px;border:1.5px solid var(--input-border);background:transparent;color:var(--text2);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;gap:5px;}
+.btn-live-refresh:hover{border-color:var(--teal);color:var(--teal);}
+
+/* SECTION HEADING */
+.section-heading{font-size:1rem;font-weight:800;color:var(--text);margin:28px 0 14px;display:flex;align-items:center;gap:8px;}
+
+/* GROUP CARDS */
+.groups-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:8px;}
+.group-card{background:var(--card);border:1px solid var(--card-border);border-radius:18px;padding:20px;box-shadow:var(--shadow);transition:all .3s;position:relative;overflow:hidden;}
+.group-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+.group-card::before{content:'';position:absolute;top:0;right:0;width:80px;height:80px;border-radius:50%;opacity:.06;transform:translate(20px,-20px);}
+.group-card:nth-child(1)::before{background:#f59e0b;}
+.group-card:nth-child(2)::before{background:#3b82f6;}
+.group-card:nth-child(3)::before{background:#ef4444;}
+.group-card:nth-child(4)::before{background:#8b5cf6;}
+.group-card:nth-child(5)::before{background:#22c55e;}
+.group-card:nth-child(6)::before{background:#ec4899;}
+.group-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.group-card h3{font-size:0.92rem;font-weight:700;color:var(--text);margin-bottom:8px;}
+.group-card .advisory-text{font-size:0.8rem;color:var(--text2);line-height:1.6;}
+.group-tips{margin-top:10px;display:flex;flex-direction:column;gap:4px;}
+.tip-row{display:flex;align-items:flex-start;gap:6px;font-size:0.75rem;color:var(--text2);}
+.tip-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);margin-top:6px;flex-shrink:0;}
+.risk-pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:0.65rem;font-weight:700;color:white;margin-top:8px;}
+
+/* AQI LEVEL GUIDE */
+.aqi-guide{display:flex;flex-direction:column;gap:10px;}
+.aqi-guide-row{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:14px;box-shadow:var(--shadow);transition:all .2s;}
+.aqi-guide-row:hover{transform:translateX(4px);box-shadow:var(--shadow-lg);}
+.aqi-color-bar{width:6px;min-height:50px;border-radius:3px;flex-shrink:0;}
+.aqi-guide-content{flex:1;}
+.aqi-guide-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.aqi-range-badge{padding:3px 12px;border-radius:99px;font-size:0.72rem;font-weight:800;color:white;}
+.aqi-guide-title{font-size:0.88rem;font-weight:700;color:var(--text);}
+.aqi-guide-desc{font-size:0.78rem;color:var(--text2);line-height:1.5;}
+.aqi-who{font-size:0.72rem;color:var(--text3);margin-top:4px;font-style:italic;}
+
+/* MASK GUIDE */
+.mask-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.mask-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:16px 12px;text-align:center;box-shadow:var(--shadow);transition:all .25s;}
+.mask-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
+.mask-icon{font-size:2rem;margin-bottom:8px;display:block;}
+.mask-name{font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:4px;}
+.mask-range{font-size:0.7rem;font-weight:600;padding:2px 8px;border-radius:99px;color:white;margin-bottom:6px;display:inline-block;}
+.mask-desc{font-size:0.72rem;color:var(--text2);line-height:1.5;}
+
+/* TIPS SECTION */
+.tips-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.tip-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:16px;box-shadow:var(--shadow);transition:all .25s;}
+.tip-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.tip-card-icon{font-size:1.5rem;margin-bottom:8px;display:block;}
+.tip-card h4{font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:6px;}
+.tip-card p{font-size:0.78rem;color:var(--text2);line-height:1.6;}
+
+/* PROTECTION BANNER */
+.protect-banner{background:linear-gradient(135deg,var(--teal),var(--teal-light));border-radius:20px;padding:28px 24px;text-align:center;margin-top:8px;box-shadow:0 8px 32px rgba(13,148,136,0.3);}
+[data-theme="dark"] .protect-banner{background:linear-gradient(135deg,#d97706,#f59e0b);box-shadow:0 8px 32px rgba(245,158,11,0.3);}
+.protect-banner .shield-icon{font-size:2.4rem;display:block;margin-bottom:12px;}
+.protect-banner h2{font-size:1.2rem;font-weight:800;color:white;margin-bottom:8px;}
+.protect-banner p{font-size:0.85rem;color:rgba(255,255,255,0.88);line-height:1.7;max-width:480px;margin:0 auto;}
+
+/* FLOATING CHATBOT */
+.chat-float{position:fixed;bottom:24px;right:20px;z-index:998;}
+.chat-float-btn{width:54px;height:54px;border-radius:50%;background:var(--teal);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(13,148,136,0.45);animation:chatPulse 2.5s ease-in-out infinite;transition:all .3s;}
+.chat-float-btn:hover{transform:scale(1.1);}
+.chat-float-btn i{font-size:1.3rem;color:white;}
+@keyframes chatPulse{0%,100%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 0 rgba(13,148,136,0.3);}50%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 10px rgba(13,148,136,0);}}
+.chat-tooltip{position:absolute;bottom:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:6px 12px;font-size:0.75rem;font-weight:600;color:var(--text);white-space:nowrap;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;}
+.chat-float:hover .chat-tooltip{opacity:1;}
+
+/* REVEAL ANIMATION */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+
+@media(max-width:768px){
+  .nav-links,.nav-user,.btn-logout{display:none;}
+  .hamburger{display:flex;}
+  .groups-grid{grid-template-columns:1fr 1fr;}
+  .mask-grid{grid-template-columns:repeat(3,1fr);}
+  .tips-grid{grid-template-columns:1fr;}
+}
+@media(max-width:480px){
+  .groups-grid{grid-template-columns:1fr;}
+  .mask-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="dashboard.html" class="nav-logo"><img src="aa.jpeg" alt="Air Aware"/><span>AirAware</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+    <a class="nav-link active" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+    <a class="nav-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+    <a class="nav-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+    <a class="nav-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+    <a class="nav-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+    <a class="nav-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chat</a>
+    <a class="nav-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+    <a class="nav-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  </div>
+  <div class="nav-right">
+    <button class="icon-btn" id="themeToggle"><i class="fa-solid fa-sun" id="themeIcon"></i></button>
+    <div class="nav-user"><span class="dot"></span><span id="navUserName">User</span></div>
+    <button class="btn-logout" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></div>
+</nav>
+
+<!-- MOBILE DRAWER -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-user"><span>👋</span><span id="drawerUserName">User</span></div>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+  <a class="drawer-link active" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+  <a class="drawer-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+  <a class="drawer-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+  <a class="drawer-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+  <a class="drawer-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+  <a class="drawer-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chatbot</a>
+  <a class="drawer-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+  <a class="drawer-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" id="drawerLogout" style="color:#ef4444"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HERO -->
+  <div class="page-hero reveal">
+    <span class="hero-icon">❤️</span>
+    <h1>Health Advisories</h1>
+    <p>Personalized health tips based on current real-time air quality conditions</p>
+  </div>
+
+  <!-- LIVE AQI BANNER -->
+  <div class="live-banner reveal">
+    <div class="live-dot"></div>
+    <div class="live-text"><strong id="liveCity">Detecting location...</strong> — Live AQI</div>
+    <span class="live-aqi-val" id="liveAqiVal" style="color:var(--teal)">—</span>
+    <span class="live-badge" id="liveBadge" style="background:#ca8a04">Loading</span>
+    <button class="btn-live-refresh" onclick="loadLiveAQI()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+  </div>
+
+  <!-- GROUP ADVISORIES -->
+  <div class="section-heading reveal">👥 Advisory by Group</div>
+  <div class="groups-grid" id="groupsGrid">
+    <!-- Cards rendered by JS -->
+  </div>
+
+  <!-- AQI LEVEL GUIDE -->
+  <div class="section-heading reveal">📊 AQI Level Health Guide</div>
+  <div class="aqi-guide reveal">
+    <div class="aqi-guide-row">
+      <div class="aqi-color-bar" style="background:#16a34a"></div>
+      <div class="aqi-guide-content">
+        <div class="aqi-guide-header">
+          <span class="aqi-range-badge" style="background:#16a34a">0–50</span>
+          <span class="aqi-guide-title">Good</span>
+        </div>
+        <div class="aqi-guide-desc">Air quality is satisfactory. No health risk. Ideal for all outdoor activities including running, cycling, and sports.</div>
+        <div class="aqi-who">✅ All groups can go outdoors freely. No precautions needed.</div>
+      </div>
+    </div>
+    <div class="aqi-guide-row">
+      <div class="aqi-color-bar" style="background:#ca8a04"></div>
+      <div class="aqi-guide-content">
+        <div class="aqi-guide-header">
+          <span class="aqi-range-badge" style="background:#ca8a04">51–100</span>
+          <span class="aqi-guide-title">Moderate</span>
+        </div>
+        <div class="aqi-guide-desc">Acceptable air quality. A small number of unusually sensitive people may experience minor effects.</div>
+        <div class="aqi-who">⚠️ Sensitive individuals: limit prolonged outdoor exertion.</div>
+      </div>
+    </div>
+    <div class="aqi-guide-row">
+      <div class="aqi-color-bar" style="background:#ea580c"></div>
+      <div class="aqi-guide-content">
+        <div class="aqi-guide-header">
+          <span class="aqi-range-badge" style="background:#ea580c">101–150</span>
+          <span class="aqi-guide-title">Unhealthy for Sensitive Groups</span>
+        </div>
+        <div class="aqi-guide-desc">Children, elderly, and people with lung or heart disease should reduce prolonged outdoor exertion.</div>
+        <div class="aqi-who">⚠️ Sensitive groups: stay indoors. General public: light activity OK.</div>
+      </div>
+    </div>
+    <div class="aqi-guide-row">
+      <div class="aqi-color-bar" style="background:#dc2626"></div>
+      <div class="aqi-guide-content">
+        <div class="aqi-guide-header">
+          <span class="aqi-range-badge" style="background:#dc2626">151–200</span>
+          <span class="aqi-guide-title">Unhealthy</span>
+        </div>
+        <div class="aqi-guide-desc">Everyone may begin to experience health effects. Members of sensitive groups may experience more serious effects.</div>
+        <div class="aqi-who">🔴 Everyone: avoid prolonged outdoor exertion. Wear N95 mask outdoors.</div>
+      </div>
+    </div>
+    <div class="aqi-guide-row">
+      <div class="aqi-color-bar" style="background:#7c3aed"></div>
+      <div class="aqi-guide-content">
+        <div class="aqi-guide-header">
+          <span class="aqi-range-badge" style="background:#7c3aed">201–300</span>
+          <span class="aqi-guide-title">Very Unhealthy</span>
+        </div>
+        <div class="aqi-guide-desc">Health alert! Everyone may experience serious health effects. Avoid all outdoor activities.</div>
+        <div class="aqi-who">🚨 Stay indoors. Keep windows closed. Use air purifier. N95 mandatory.</div>
+      </div>
+    </div>
+    <div class="aqi-guide-row">
+      <div class="aqi-color-bar" style="background:#7f1d1d"></div>
+      <div class="aqi-guide-content">
+        <div class="aqi-guide-header">
+          <span class="aqi-range-badge" style="background:#7f1d1d">301–500</span>
+          <span class="aqi-guide-title">Hazardous</span>
+        </div>
+        <div class="aqi-guide-desc">Emergency conditions. The entire population is likely to be affected. Serious risk of death for prolonged exposure.</div>
+        <div class="aqi-who">☠️ Do NOT go outside. Seal doors/windows. Seek medical help if symptoms occur.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MASK GUIDE -->
+  <div class="section-heading reveal">😷 Mask Selection Guide</div>
+  <div class="mask-grid reveal">
+    <div class="mask-card">
+      <span class="mask-icon">🟢</span>
+      <div class="mask-name">No Mask</div>
+      <div class="mask-range" style="background:#16a34a">AQI 0–50</div>
+      <div class="mask-desc">Air is clean. No mask needed for outdoor activities.</div>
+    </div>
+    <div class="mask-card">
+      <span class="mask-icon">💊</span>
+      <div class="mask-name">Surgical Mask</div>
+      <div class="mask-range" style="background:#ca8a04">AQI 51–100</div>
+      <div class="mask-desc">Basic 3-ply mask for sensitive individuals during moderate pollution.</div>
+    </div>
+    <div class="mask-card">
+      <span class="mask-icon">😷</span>
+      <div class="mask-name">N95 / KN95</div>
+      <div class="mask-range" style="background:#ea580c">AQI 101–150</div>
+      <div class="mask-desc">Filters 95% of fine particles. Recommended for sensitive groups.</div>
+    </div>
+    <div class="mask-card">
+      <span class="mask-icon">🛡️</span>
+      <div class="mask-name">N95 Mandatory</div>
+      <div class="mask-range" style="background:#dc2626">AQI 151–200</div>
+      <div class="mask-desc">N95 or better for everyone going outdoors. Ensure proper fit and seal.</div>
+    </div>
+    <div class="mask-card">
+      <span class="mask-icon">⛑️</span>
+      <div class="mask-name">P100 Respirator</div>
+      <div class="mask-range" style="background:#7c3aed">AQI 201–300</div>
+      <div class="mask-desc">High-grade respirator. Minimize outdoor exposure to under 30 mins.</div>
+    </div>
+    <div class="mask-card">
+      <span class="mask-icon">🚫</span>
+      <div class="mask-name">Stay Indoors</div>
+      <div class="mask-range" style="background:#7f1d1d">AQI 300+</div>
+      <div class="mask-desc">No mask is sufficient. Do not go outside under any circumstances.</div>
+    </div>
+  </div>
+
+  <!-- TIPS -->
+  <div class="section-heading reveal">💡 General Health Tips</div>
+  <div class="tips-grid reveal">
+    <div class="tip-card">
+      <span class="tip-card-icon">🌱</span>
+      <h4>Add Indoor Plants</h4>
+      <p>Spider plants, peace lilies, and snake plants naturally filter indoor air by absorbing harmful pollutants like benzene and formaldehyde.</p>
+    </div>
+    <div class="tip-card">
+      <span class="tip-card-icon">🔧</span>
+      <h4>Use HEPA Air Purifier</h4>
+      <p>A HEPA air purifier can remove up to 99.97% of airborne particles including PM2.5 from your home. Run it in your bedroom at night.</p>
+    </div>
+    <div class="tip-card">
+      <span class="tip-card-icon">🪟</span>
+      <h4>Smart Ventilation</h4>
+      <p>Open windows only when outdoor AQI is below 50. On bad air days, keep windows and doors closed to prevent pollution from entering.</p>
+    </div>
+    <div class="tip-card">
+      <span class="tip-card-icon">🏃</span>
+      <h4>Exercise Timing</h4>
+      <p>Morning hours (5–8 AM) typically have lower AQI. Avoid exercising outdoors during 12 PM–4 PM when pollution peaks in most cities.</p>
+    </div>
+    <div class="tip-card">
+      <span class="tip-card-icon">💧</span>
+      <h4>Stay Hydrated</h4>
+      <p>Drink plenty of water on high pollution days. Proper hydration helps your body flush out toxins and supports respiratory health.</p>
+    </div>
+    <div class="tip-card">
+      <span class="tip-card-icon">🥗</span>
+      <h4>Anti-Pollution Diet</h4>
+      <p>Foods rich in Vitamin C (oranges, amla), omega-3 fatty acids, and antioxidants strengthen your lungs and reduce inflammation from pollution exposure.</p>
+    </div>
+  </div>
+
+  <!-- PROTECT BANNER -->
+  <div class="protect-banner reveal" style="margin-top:28px;">
+    <span class="shield-icon">🛡️</span>
+    <h2>Stay Protected</h2>
+    <p>Always check the AQI before planning outdoor activities. When AQI exceeds 150, limit time outdoors and use protective masks. Your health is always the priority.</p>
+  </div>
+
+</div>
+
+<!-- FLOATING CHATBOT -->
+<div class="chat-float">
+  <div class="chat-tooltip">Ask A4 about your health</div>
+  <button class="chat-float-btn" onclick="window.location.href='chatbot.html'"><i class="fa-solid fa-robot"></i></button>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+const app = initializeApp({apiKey:"AIzaSyDZO2hrovVxBhXPIpNvk_7AAKcOaUPKcZ4",authDomain:"airaware-3ee4f.firebaseapp.com",projectId:"airaware-3ee4f",storageBucket:"airaware-3ee4f.firebasestorage.app",messagingSenderId:"630822228326",appId:"1:630822228326:web:78e36eb41c50a4412278a7"});
+const auth = getAuth(app);
+onAuthStateChanged(auth, (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const name = user.displayName || user.email.split('@')[0];
+  document.getElementById('navUserName').textContent = name.split(' ')[0];
+  document.getElementById('drawerUserName').textContent = name;
+});
+document.getElementById('btnLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+document.getElementById('drawerLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+</script>
+
+<script>
+const WAQI_TOKEN = "112d5fe071295b33b2f8a950a1dfb608fdf7e11c";
+
+// ── THEME ──
+const html = document.documentElement;
+let isDark = localStorage.getItem('aa-theme') === 'dark';
+function applyTheme() {
+  html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', () => { isDark = !isDark; localStorage.setItem('aa-theme', isDark ? 'dark' : 'light'); applyTheme(); });
+function toggleDrawer() { document.getElementById('mobileDrawer').classList.toggle('open'); }
+document.addEventListener('click', e => {
+  const d=document.getElementById('mobileDrawer'),h=document.getElementById('hamburger');
+  if(d&&h&&!d.contains(e.target)&&!h.contains(e.target)) d.classList.remove('open');
+});
+
+// ── AQI INFO ──
+function aqiInfo(aqi) {
+  if(aqi<=50) return {label:'Good',color:'#16a34a',bg:'#16a34a',level:0};
+  if(aqi<=100) return {label:'Moderate',color:'#ca8a04',bg:'#ca8a04',level:1};
+  if(aqi<=150) return {label:'Unhealthy (SG)',color:'#ea580c',bg:'#ea580c',level:2};
+  if(aqi<=200) return {label:'Unhealthy',color:'#dc2626',bg:'#dc2626',level:3};
+  if(aqi<=300) return {label:'Very Unhealthy',color:'#7c3aed',bg:'#7c3aed',level:4};
+  return {label:'Hazardous',color:'#7f1d1d',bg:'#7f1d1d',level:5};
+}
+
+// ── GROUP ADVISORIES DATA ──
+const GROUPS = [
+  {
+    icon:'🫁', bg:'linear-gradient(135deg,#f59e0b,#d97706)', name:'General Population',
+    tips: [
+      [0, "Air is clean — go outside freely!"],
+      [1, "Air is acceptable — unusually sensitive people should limit prolonged exertion."],
+      [2, "Reduce outdoor exertion. Take breaks during outdoor activities."],
+      [3, "Avoid prolonged outdoor activity. Wear a mask if going out."],
+      [4, "Stay indoors. Avoid all outdoor activities."],
+      [5, "Hazardous. Do not go outside under any circumstances."]
+    ]
+  },
+  {
+    icon:'👶', bg:'linear-gradient(135deg,#3b82f6,#2563eb)', name:'Children',
+    tips: [
+      [0, "Perfect for outdoor play and school activities."],
+      [1, "Outdoor activities fine. Watch for sensitive children."],
+      [2, "Reduce playtime during peak pollution hours (12 PM–4 PM). Keep windows closed."],
+      [3, "Limit all outdoor activities. Avoid recess outdoors."],
+      [4, "Keep children indoors. Close all windows and doors."],
+      [5, "Do not send children outside. Consult doctor if symptoms appear."]
+    ]
+  },
+  {
+    icon:'🧓', bg:'linear-gradient(135deg,#ef4444,#dc2626)', name:'Elderly',
+    tips: [
+      [0, "Safe for all outdoor activities. Enjoy the fresh air."],
+      [1, "Light outdoor activity is fine. Avoid intense exertion."],
+      [2, "Avoid strenuous outdoor activities. Use air purifiers indoors. Stay hydrated."],
+      [3, "Stay indoors as much as possible. Avoid all outdoor exertion."],
+      [4, "Remain indoors. Seal windows. Use air purifier."],
+      [5, "Stay indoors. Call a doctor if breathing difficulties arise."]
+    ]
+  },
+  {
+    icon:'💨', bg:'linear-gradient(135deg,#8b5cf6,#7c3aed)', name:'Asthma Patients',
+    tips: [
+      [0, "Low risk day. Normal activity is safe. Keep inhaler nearby."],
+      [1, "Carry rescue inhaler. Avoid known triggers outdoors."],
+      [2, "Carry inhalers. Avoid areas with heavy traffic. Wear N95 mask outdoors."],
+      [3, "Stay indoors. Use prescribed controller medications."],
+      [4, "Do not go outside. Use rescue inhaler if needed. Call doctor if severe."],
+      [5, "Emergency conditions. Seek immediate medical help if symptoms worsen."]
+    ]
+  },
+  {
+    icon:'🏃', bg:'linear-gradient(135deg,#22c55e,#16a34a)', name:'Athletes & Joggers',
+    tips: [
+      [0, "Perfect conditions for all outdoor sports and training!"],
+      [1, "Fine for most athletes. Sensitive ones should reduce intensity."],
+      [2, "Shift outdoor workouts to early morning when AQI is typically lower."],
+      [3, "Move workouts indoors. Avoid outdoor training."],
+      [4, "Cancel all outdoor exercise. Exercise indoors only."],
+      [5, "No outdoor activity whatsoever. Indoor rest recommended."]
+    ]
+  },
+  {
+    icon:'🤰', bg:'linear-gradient(135deg,#ec4899,#be185d)', name:'Pregnant Women',
+    tips: [
+      [0, "Safe outdoors. Light walks and fresh air are beneficial."],
+      [1, "Short outdoor walks are fine. Avoid heavy exertion."],
+      [2, "Minimize exposure to polluted air. Use indoor air purifiers and avoid congested roads."],
+      [3, "Stay indoors. Avoid road-side walking or travel."],
+      [4, "Remain indoors completely. Avoid all outdoor exposure."],
+      [5, "Maximum precaution. Stay indoors with windows sealed. Consult OB/GYN."]
+    ]
+  }
+];
+
+let currentAQI = null;
+
+// ── LOAD LIVE AQI ──
+window.loadLiveAQI = async function() {
+  document.getElementById('liveCity').textContent = 'Detecting location...';
+  if (!navigator.geolocation) { fetchHealthAQI('bangalore'); return; }
+  navigator.geolocation.getCurrentPosition(
+    async pos => {
+      try {
+        const {latitude:lat,longitude:lon} = pos.coords;
+        const res = await fetch(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=${WAQI_TOKEN}`);
+        const json = await res.json();
+        if(json.status==='ok') {
+          currentAQI = json.data.aqi;
+          updateBanner(json.data.city?.name||'Your Location', currentAQI);
+          renderGroupCards(currentAQI);
+        }
+      } catch(e) { fetchHealthAQI('bangalore'); }
+    },
+    () => fetchHealthAQI('bangalore')
+  );
+};
+
+async function fetchHealthAQI(city) {
+  try {
+    const res = await fetch(`https://api.waqi.info/feed/${city}/?token=${WAQI_TOKEN}`);
+    const json = await res.json();
+    if(json.status==='ok') {
+      currentAQI = json.data.aqi;
+      updateBanner(json.data.city?.name||city, currentAQI);
+      renderGroupCards(currentAQI);
+    }
+  } catch(e) {}
+}
+
+function updateBanner(city, aqi) {
+  const info = aqiInfo(aqi);
+  document.getElementById('liveCity').textContent = (city||'').split(',')[0];
+  document.getElementById('liveAqiVal').textContent = aqi;
+  document.getElementById('liveAqiVal').style.color = info.color;
+  document.getElementById('liveBadge').textContent = info.label;
+  document.getElementById('liveBadge').style.background = info.bg;
+}
+
+function renderGroupCards(aqi) {
+  const info = aqiInfo(aqi);
+  const level = info.level;
+  const grid = document.getElementById('groupsGrid');
+  grid.innerHTML = GROUPS.map(g => {
+    const tipText = g.tips[level][1];
+    const riskColors = ['#16a34a','#ca8a04','#ea580c','#dc2626','#7c3aed','#7f1d1d'];
+    const riskLabels = ['Low Risk','Moderate','Caution','High Risk','Very High Risk','Hazardous'];
+    return `
+      <div class="group-card reveal">
+        <div class="group-icon" style="background:${g.bg}">${g.icon}</div>
+        <h3>${g.name}</h3>
+        <div class="advisory-text">${tipText}</div>
+        <div><span class="risk-pill" style="background:${riskColors[level]}">${riskLabels[level]}</span></div>
+      </div>`;
+  }).join('');
+  // Observe new cards
+  document.querySelectorAll('.group-card.reveal').forEach(el => observer.observe(el));
+}
+
+// ── SCROLL REVEAL (must be before renderGroupCards) ──
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, {threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Default render with moderate AQI until real data loads, then fetch real
+renderGroupCards(80);
+loadLiveAQI();
+</script>
+</body>
+</html>

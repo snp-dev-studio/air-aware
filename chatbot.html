@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Air Aware — A4 AI Chatbot</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<style>
+:root{
+  --teal:#0d9488;--teal-light:#14b8a6;--teal-dark:#0f766e;
+  --bg:#f1f5f9;--card:#ffffff;--card-border:rgba(0,0,0,0.08);
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --nav-bg:rgba(255,255,255,0.95);--nav-border:rgba(0,0,0,0.08);
+  --input-bg:#ffffff;--input-border:#e2e8f0;
+  --shadow:0 4px 24px rgba(0,0,0,0.08);
+  --user-bubble:#0d9488;--bot-bubble:#f8fafc;--bot-border:rgba(0,0,0,0.08);
+  --bot-text:#0f172a;--user-text:#ffffff;
+  --suggestion-bg:#f1f5f9;--suggestion-border:#e2e8f0;
+}
+[data-theme="dark"]{
+  --teal:#f59e0b;--teal-light:#fbbf24;--teal-dark:#d97706;
+  --bg:#0a0a0f;--card:#1a1a24;--card-border:rgba(255,255,255,0.07);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+  --nav-bg:rgba(10,10,15,0.96);--nav-border:rgba(255,255,255,0.07);
+  --input-bg:#0f0f18;--input-border:rgba(255,255,255,0.1);
+  --shadow:0 4px 24px rgba(0,0,0,0.3);
+  --user-bubble:#f59e0b;--bot-bubble:#1a1a24;--bot-border:rgba(255,255,255,0.07);
+  --bot-text:#f1f5f9;--user-text:#0f172a;
+  --suggestion-bg:#1a1a24;--suggestion-border:rgba(255,255,255,0.08);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;transition:background .4s,color .4s;}
+
+/* NAV */
+nav{flex-shrink:0;position:relative;z-index:100;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);backdrop-filter:blur(16px);height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;}
+.nav-logo{display:flex;align-items:center;gap:7px;text-decoration:none;flex-shrink:0;}
+.nav-logo img{width:26px;height:26px;object-fit:contain;border-radius:6px;}
+.nav-logo span{font-size:1rem;font-weight:700;color:var(--teal);}
+.nav-links{display:flex;align-items:center;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;}
+.nav-links::-webkit-scrollbar{display:none;}
+.nav-link{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;font-size:0.78rem;font-weight:500;color:var(--text2);text-decoration:none;white-space:nowrap;transition:all .2s;}
+.nav-link:hover{background:rgba(13,148,136,0.08);color:var(--teal);}
+.nav-link.active{background:rgba(13,148,136,0.12);color:var(--teal);font-weight:600;}
+[data-theme="dark"] .nav-link:hover,[data-theme="dark"] .nav-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto;}
+.nav-user{display:flex;align-items:center;gap:6px;font-size:0.8rem;font-weight:600;color:var(--text2);}
+.nav-user .dot{width:8px;height:8px;background:#f59e0b;border-radius:50%;}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:none;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:all .2s;}
+.icon-btn:hover{background:var(--card);color:var(--teal);}
+.btn-logout{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--card-border);background:transparent;color:var(--text2);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;}
+.btn-logout:hover{border-color:#ef4444;color:#ef4444;}
+.hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:4px;}
+.hamburger span{width:20px;height:2px;background:var(--text);border-radius:2px;display:block;}
+.mobile-drawer{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;z-index:999;background:var(--nav-bg);backdrop-filter:blur(16px);padding:16px;flex-direction:column;gap:4px;overflow-y:auto;}
+.mobile-drawer.open{display:flex;}
+.drawer-link{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:0.95rem;font-weight:500;color:var(--text2);text-decoration:none;transition:all .2s;}
+.drawer-link:hover,.drawer-link.active{background:rgba(13,148,136,0.1);color:var(--teal);}
+[data-theme="dark"] .drawer-link:hover,[data-theme="dark"] .drawer-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.drawer-divider{height:1px;background:var(--card-border);margin:8px 0;}
+.drawer-user{display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:0.95rem;font-weight:600;color:var(--text);}
+
+/* CHAT LAYOUT */
+.chat-page{flex:1;display:flex;flex-direction:column;max-width:760px;width:100%;margin:0 auto;padding:0 16px;overflow:hidden;}
+
+/* BOT HEADER */
+.bot-header{flex-shrink:0;display:flex;align-items:center;gap:12px;padding:14px 0 10px;}
+.bot-avatar{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--teal),var(--teal-light));display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;box-shadow:0 4px 12px rgba(13,148,136,0.3);}
+[data-theme="dark"] .bot-avatar{box-shadow:0 4px 12px rgba(245,158,11,0.3);}
+.bot-info h2{font-size:1rem;font-weight:800;color:var(--text);}
+.bot-info p{font-size:0.75rem;color:var(--text3);}
+.bot-status{display:flex;align-items:center;gap:5px;margin-left:auto;}
+.status-dot{width:8px;height:8px;background:#22c55e;border-radius:50%;animation:statusPulse 2s ease-in-out infinite;}
+@keyframes statusPulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.status-label{font-size:0.72rem;color:#22c55e;font-weight:600;}
+.mode-badge{padding:3px 10px;border-radius:99px;font-size:0.68rem;font-weight:700;border:1px solid;margin-left:8px;}
+.mode-gemini{color:var(--teal);border-color:var(--teal);background:rgba(13,148,136,0.08);}
+.mode-fallback{color:#f59e0b;border-color:#f59e0b;background:rgba(245,158,11,0.08);}
+
+/* AQI CONTEXT BAR */
+.aqi-context{flex-shrink:0;background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ctx-icon{font-size:1.1rem;}
+.ctx-text{font-size:0.8rem;color:var(--text2);flex:1;}
+.ctx-text strong{color:var(--text);}
+.ctx-aqi{font-size:1rem;font-weight:800;}
+.btn-ctx-refresh{padding:5px 12px;border-radius:8px;border:1.5px solid var(--input-border);background:var(--input-bg);color:var(--text2);font-size:0.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;gap:5px;}
+.btn-ctx-refresh:hover{border-color:var(--teal);color:var(--teal);}
+
+/* MESSAGES */
+.messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:8px 0 4px;scrollbar-width:thin;scrollbar-color:var(--card-border) transparent;}
+.messages::-webkit-scrollbar{width:4px;}
+.messages::-webkit-scrollbar-track{background:transparent;}
+.messages::-webkit-scrollbar-thumb{background:var(--card-border);border-radius:2px;}
+
+/* MESSAGE BUBBLES */
+.msg{display:flex;gap:8px;align-items:flex-end;max-width:88%;}
+.msg.user{flex-direction:row-reverse;margin-left:auto;}
+.msg.bot{margin-right:auto;}
+.msg-avatar{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;}
+.msg.bot .msg-avatar{background:linear-gradient(135deg,var(--teal),var(--teal-light));color:white;}
+.msg.user .msg-avatar{background:var(--card-border);font-size:0.75rem;}
+.msg-bubble{padding:10px 14px;border-radius:16px;font-size:0.88rem;line-height:1.6;word-wrap:break-word;}
+.msg.bot .msg-bubble{background:var(--bot-bubble);border:1px solid var(--bot-border);color:var(--bot-text);border-bottom-left-radius:4px;}
+.msg.user .msg-bubble{background:var(--user-bubble);color:var(--user-text);border-bottom-right-radius:4px;}
+.msg-time{font-size:0.65rem;color:var(--text3);margin-top:4px;text-align:right;}
+.msg.bot .msg-time{text-align:left;}
+
+/* TYPING INDICATOR */
+.typing-dots{display:flex;gap:4px;padding:4px 2px;}
+.typing-dots span{width:7px;height:7px;background:var(--text3);border-radius:50%;animation:typing 1.2s ease-in-out infinite;}
+.typing-dots span:nth-child(2){animation-delay:.2s;}
+.typing-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes typing{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);}}
+
+/* SUGGESTIONS */
+.suggestions{flex-shrink:0;display:flex;gap:6px;flex-wrap:wrap;padding:8px 0 6px;overflow-x:auto;scrollbar-width:none;}
+.suggestions::-webkit-scrollbar{display:none;}
+.suggestion-chip{padding:6px 13px;border-radius:99px;border:1.5px solid var(--suggestion-border);background:var(--suggestion-bg);color:var(--text2);font-size:0.75rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .2s;font-family:'Outfit',sans-serif;}
+.suggestion-chip:hover{border-color:var(--teal);color:var(--teal);background:rgba(13,148,136,0.05);}
+[data-theme="dark"] .suggestion-chip:hover{border-color:#f59e0b;color:#f59e0b;}
+
+/* INPUT */
+.chat-input-row{flex-shrink:0;display:flex;gap:8px;padding:8px 0 16px;align-items:flex-end;}
+.chat-input-wrap{flex:1;position:relative;}
+#chatInput{width:100%;padding:12px 16px;border-radius:14px;border:1.5px solid var(--input-border);background:var(--input-bg);color:var(--text);font-size:0.9rem;font-family:'Outfit',sans-serif;outline:none;resize:none;max-height:120px;transition:all .25s;line-height:1.5;}
+#chatInput:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,0.1);}
+[data-theme="dark"] #chatInput:focus{box-shadow:0 0 0 3px rgba(245,158,11,0.1);}
+#chatInput::placeholder{color:var(--text3);}
+.btn-send{width:44px;height:44px;border-radius:12px;border:none;background:var(--teal);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .25s;flex-shrink:0;}
+.btn-send:hover{background:var(--teal-dark);transform:scale(1.05);}
+.btn-send:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.btn-clear{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--input-border);background:transparent;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:all .25s;flex-shrink:0;}
+.btn-clear:hover{border-color:#ef4444;color:#ef4444;}
+
+@media(max-width:768px){
+  .nav-links,.nav-user,.btn-logout{display:none;}
+  .hamburger{display:flex;}
+  .chat-page{padding:0 12px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="dashboard.html" class="nav-logo"><img src="aa.jpeg" alt="Air Aware"/><span>AirAware</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+    <a class="nav-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+    <a class="nav-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+    <a class="nav-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+    <a class="nav-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+    <a class="nav-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+    <a class="nav-link active" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chat</a>
+    <a class="nav-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+    <a class="nav-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  </div>
+  <div class="nav-right">
+    <button class="icon-btn" id="themeToggle"><i class="fa-solid fa-sun" id="themeIcon"></i></button>
+    <div class="nav-user"><span class="dot"></span><span id="navUserName">User</span></div>
+    <button class="btn-logout" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></div>
+</nav>
+
+<!-- MOBILE DRAWER -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-user"><span>👋</span><span id="drawerUserName">User</span></div>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+  <a class="drawer-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+  <a class="drawer-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+  <a class="drawer-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+  <a class="drawer-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+  <a class="drawer-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+  <a class="drawer-link active" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chatbot</a>
+  <a class="drawer-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+  <a class="drawer-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" id="drawerLogout" style="color:#ef4444"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</div>
+
+<!-- CHAT PAGE -->
+<div class="chat-page">
+  <!-- BOT HEADER -->
+  <div class="bot-header">
+    <div class="bot-avatar">🤖</div>
+    <div class="bot-info">
+      <h2>A4 — Air Aware AI Assistant</h2>
+      <p>AI-Powered Air Quality Health Advisor</p>
+    </div>
+    <div class="bot-status">
+      <span class="status-dot"></span>
+      <span class="status-label">Online</span>
+      <span class="mode-badge mode-gemini" id="modeBadge">Gemini AI</span>
+    </div>
+  </div>
+
+  <!-- AQI CONTEXT BAR -->
+  <div class="aqi-context">
+    <span class="ctx-icon">📍</span>
+    <span class="ctx-text" id="ctxText">Detecting your location AQI...</span>
+    <span class="ctx-aqi" id="ctxAqi" style="color:var(--teal)"></span>
+    <button class="btn-ctx-refresh" onclick="fetchCurrentAQI()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="messages" id="messages"></div>
+
+  <!-- SUGGESTIONS -->
+  <div class="suggestions" id="suggestions">
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">Is it safe to go outside today? 🚶</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">Can I jog or exercise outdoors? 🏃</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">What mask should I wear today? 😷</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">Is the air safe for my child? 👶</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">Tips for asthma patients today 💨</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">What is PM2.5 and why is it harmful?</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">How to improve indoor air quality? 🏠</button>
+    <button class="suggestion-chip" onclick="sendSuggestion(this)">Why is AQI high in winters? ❄️</button>
+  </div>
+
+  <!-- INPUT -->
+  <div class="chat-input-row">
+    <button class="btn-clear" onclick="clearChat()" title="Clear chat"><i class="fa-regular fa-trash-can"></i></button>
+    <div class="chat-input-wrap">
+      <textarea id="chatInput" placeholder="Ask A4 anything about air quality..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    </div>
+    <button class="btn-send" id="btnSend" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+const app = initializeApp({apiKey:"AIzaSyDZO2hrovVxBhXPIpNvk_7AAKcOaUPKcZ4",authDomain:"airaware-3ee4f.firebaseapp.com",projectId:"airaware-3ee4f",storageBucket:"airaware-3ee4f.firebasestorage.app",messagingSenderId:"630822228326",appId:"1:630822228326:web:78e36eb41c50a4412278a7"});
+const auth = getAuth(app);
+onAuthStateChanged(auth, (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const name = user.displayName || user.email.split('@')[0];
+  window._userName = name.split(' ')[0];
+  document.getElementById('navUserName').textContent = window._userName;
+  document.getElementById('drawerUserName').textContent = name;
+  // Greet user
+  setTimeout(() => greetUser(window._userName), 300);
+});
+document.getElementById('btnLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+document.getElementById('drawerLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+</script>
+
+<script>
+const GEMINI_KEY = "AIzaSyAAkL-zOUFSX17cXu_3YvD2upk43HV73Us";
+const WAQI_TOKEN = "112d5fe071295b33b2f8a950a1dfb608fdf7e11c";
+
+// State
+let currentAQI = null;
+let currentCity = null;
+let geminiAvailable = true;
+let conversationHistory = [];
+let isTyping = false;
+
+// ── THEME ──
+const html = document.documentElement;
+let isDark = localStorage.getItem('aa-theme') === 'dark';
+function applyTheme() {
+  html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', () => { isDark = !isDark; localStorage.setItem('aa-theme', isDark ? 'dark' : 'light'); applyTheme(); });
+function toggleDrawer() { document.getElementById('mobileDrawer').classList.toggle('open'); }
+document.addEventListener('click', e => {
+  const d=document.getElementById('mobileDrawer'),h=document.getElementById('hamburger');
+  if(d&&h&&!d.contains(e.target)&&!h.contains(e.target)) d.classList.remove('open');
+});
+
+// ── AQI HELPERS ──
+function aqiInfo(aqi) {
+  if(aqi<=50) return {label:'Good',color:'#16a34a',emoji:'🟢'};
+  if(aqi<=100) return {label:'Moderate',color:'#ca8a04',emoji:'🟡'};
+  if(aqi<=150) return {label:'Unhealthy for Sensitive Groups',color:'#ea580c',emoji:'🟠'};
+  if(aqi<=200) return {label:'Unhealthy',color:'#dc2626',emoji:'🔴'};
+  if(aqi<=300) return {label:'Very Unhealthy',color:'#7c3aed',emoji:'🟣'};
+  return {label:'Hazardous',color:'#7f1d1d',emoji:'⚫'};
+}
+
+// ── FETCH CURRENT AQI ──
+window.fetchCurrentAQI = async function() {
+  document.getElementById('ctxText').textContent = 'Detecting location...';
+  document.getElementById('ctxAqi').textContent = '';
+  if (!navigator.geolocation) { fetchAQIByCity('bangalore'); return; }
+  navigator.geolocation.getCurrentPosition(
+    async pos => {
+      try {
+        const {latitude:lat,longitude:lon} = pos.coords;
+        const res = await fetch(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=${WAQI_TOKEN}`);
+        const json = await res.json();
+        if(json.status==='ok') {
+          currentAQI = json.data.aqi;
+          currentCity = json.data.city?.name || 'Your Location';
+          updateCtxBar();
+        }
+      } catch(e) { fetchAQIByCity('bangalore'); }
+    },
+    () => fetchAQIByCity('bangalore')
+  );
+};
+
+async function fetchAQIByCity(city) {
+  try {
+    const res = await fetch(`https://api.waqi.info/feed/${city}/?token=${WAQI_TOKEN}`);
+    const json = await res.json();
+    if(json.status==='ok') {
+      currentAQI = json.data.aqi;
+      currentCity = json.data.city?.name || city;
+      updateCtxBar();
+    }
+  } catch(e) {}
+}
+
+function updateCtxBar() {
+  if (!currentAQI) return;
+  const info = aqiInfo(currentAQI);
+  document.getElementById('ctxText').innerHTML = `${info.emoji} Current AQI for <strong>${(currentCity||'').split(',')[0]}</strong>`;
+  document.getElementById('ctxAqi').textContent = currentAQI;
+  document.getElementById('ctxAqi').style.color = info.color;
+}
+
+// ── GREETING ──
+function greetUser(name) {
+  fetchCurrentAQI();
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const msg = `${greeting}, ${name||'there'}! 👋 I'm **A4** — your *Air Aware AI Assistant*.\n\nI can help you with:\n• 🌫️ Real-time AQI analysis for any city\n• 🏥 Personalized health advice based on air quality\n• 😷 Mask recommendations & outdoor activity safety\n• 🌿 Indoor air quality tips\n• 📊 Understanding pollutants like PM2.5, PM10, NO₂\n• 👶 Special advice for children, elderly & asthma patients\n\nI already know your current AQI. Just ask me anything! 🤖`;
+  addMessage('bot', msg);
+}
+
+// ── SEND MESSAGE ──
+window.sendMessage = async function() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || isTyping) return;
+  input.value = '';
+  autoResize(input);
+  addMessage('user', text);
+  document.getElementById('suggestions').style.display = 'none';
+  showTyping();
+  isTyping = true;
+  document.getElementById('btnSend').disabled = true;
+
+  let response;
+  if (geminiAvailable) {
+    response = await askGemini(text);
+  }
+  if (!response) {
+    response = getFallbackResponse(text);
+    document.getElementById('modeBadge').textContent = 'Smart Mode';
+    document.getElementById('modeBadge').className = 'mode-badge mode-fallback';
+  }
+
+  hideTyping();
+  isTyping = false;
+  document.getElementById('btnSend').disabled = false;
+  addMessage('bot', response);
+};
+
+window.sendSuggestion = function(btn) {
+  document.getElementById('chatInput').value = btn.textContent.trim().replace(/[🚶🏃😷👶💨🏠❄️]/g,'').trim();
+  sendMessage();
+};
+
+// ── GEMINI API ──
+async function askGemini(userMsg) {
+  try {
+    const aqiContext = currentAQI
+      ? `CURRENT AQI CONTEXT: City = ${currentCity||'Unknown'}, AQI = ${currentAQI}, Status = ${aqiInfo(currentAQI).label}.`
+      : 'CURRENT AQI CONTEXT: Not available.';
+
+    const systemPrompt = `You are A4 (Air Aware AI Assistant), a friendly and knowledgeable air quality health advisor built into the AirAware app.
+
+${aqiContext}
+
+Your personality:
+- Warm, friendly, and conversational — not robotic
+- Use emojis tastefully (🌿✅⚠️😷🏃) to make responses lively
+- Give concise, actionable answers — not walls of text
+- Always personalize advice based on the current AQI context when relevant
+- End responses with a helpful follow-up suggestion when appropriate
+- Use simple language, avoid heavy medical jargon
+
+You can answer questions about:
+- Air quality and AQI levels
+- Health advice based on current AQI
+- Outdoor activity safety
+- Mask recommendations
+- Pollutants (PM2.5, PM10, CO, NO₂, SO₂, O₃)
+- Tips for children, elderly, asthma patients
+- Indoor air quality improvement
+- Why AQI changes (seasons, traffic, industry)
+- City-specific air quality
+- General environmental health
+
+Keep responses under 200 words. Be human and helpful.`;
+
+    conversationHistory.push({role:'user', parts:[{text: userMsg}]});
+    if(conversationHistory.length > 10) conversationHistory = conversationHistory.slice(-10);
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        system_instruction:{parts:[{text:systemPrompt}]},
+        contents: conversationHistory,
+        generationConfig:{maxOutputTokens:350, temperature:0.7}
+      })
+    });
+
+    if (res.status === 429) { geminiAvailable = false; return null; }
+    if (!res.ok) { geminiAvailable = false; return null; }
+
+    const data = await res.json();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!reply) { geminiAvailable = false; return null; }
+
+    conversationHistory.push({role:'model', parts:[{text:reply}]});
+    document.getElementById('modeBadge').textContent = 'Gemini AI';
+    document.getElementById('modeBadge').className = 'mode-badge mode-gemini';
+    return reply;
+  } catch(e) {
+    geminiAvailable = false;
+    return null;
+  }
+}
+
+// ── JS FALLBACK ──
+function getFallbackResponse(msg) {
+  const m = msg.toLowerCase();
+  const aqi = currentAQI;
+  const city = (currentCity||'your location').split(',')[0];
+  const info = aqi ? aqiInfo(aqi) : null;
+
+  if (m.includes('jog') || m.includes('run') || m.includes('exercise') || m.includes('outdoor') || m.includes('walk') || m.includes('outside')) {
+    if (!aqi) return "I don't have your current AQI data. Please refresh the location bar above! 🔄";
+    if (aqi <= 50) return `✅ Great news! AQI in ${city} is **${aqi}** (Good). Perfect conditions for jogging, cycling, or any outdoor exercise. Enjoy the fresh air! 🏃🌿`;
+    if (aqi <= 100) return `🟡 AQI in ${city} is **${aqi}** (Moderate). Outdoor activities are generally fine for healthy individuals. Sensitive people may want to limit intense exercise. Take short breaks if needed.`;
+    if (aqi <= 150) return `🟠 AQI is **${aqi}** (Unhealthy for Sensitive Groups). Healthy adults can still do light outdoor activity but avoid intense exercise. Children, elderly, and those with respiratory conditions should stay indoors.`;
+    if (aqi <= 200) return `🔴 AQI is **${aqi}** (Unhealthy). I'd recommend skipping outdoor exercise today. Move workouts indoors if possible. If you must go out, wear an N95 mask and keep it short. 😷`;
+    return `⚠️ AQI is **${aqi}** — dangerous levels! Please avoid all outdoor activities. Stay indoors, keep windows closed, and use an air purifier if available.`;
+  }
+
+  if (m.includes('mask') || m.includes('wear')) {
+    if (!aqi) return "Please refresh your AQI first by clicking the refresh button above! 🔄";
+    if (aqi <= 100) return `😊 With AQI at **${aqi}** in ${city}, no mask is needed for most people. Sensitive groups may use a basic surgical mask for extra comfort.`;
+    if (aqi <= 150) return `😷 AQI is **${aqi}**. A surgical mask (3-ply) is recommended for sensitive groups outdoors. Healthy adults don't necessarily need one for short trips.`;
+    if (aqi <= 200) return `😷 AQI is **${aqi}** — an **N95 or KN95 mask** is strongly recommended for anyone going outdoors. Regular cloth masks won't filter fine particles effectively at this level.`;
+    return `🚨 AQI is **${aqi}** — wear an **N95/P100 respirator** if you absolutely must go outside. Cloth and surgical masks are insufficient at hazardous levels.`;
+  }
+
+  if (m.includes('child') || m.includes('kid') || m.includes('baby') || m.includes('school')) {
+    if (!aqi) return "Refresh your AQI first using the button above! 🔄";
+    if (aqi <= 100) return `👶 AQI is **${aqi}** — generally safe for children. Outdoor play and school activities are fine. Keep an eye on children with respiratory conditions.`;
+    if (aqi <= 150) return `⚠️ AQI is **${aqi}**. Limit children's outdoor activities, especially vigorous exercise. Keep outdoor recess sessions shorter than usual.`;
+    return `🚨 AQI is **${aqi}** — children should stay indoors. Avoid school outdoor activities. If symptoms like coughing or eye irritation appear, consult a doctor.`;
+  }
+
+  if (m.includes('asthma') || m.includes('respiratory') || m.includes('breathing') || m.includes('inhaler')) {
+    if (!aqi) return "Please refresh your AQI first! 🔄";
+    if (aqi <= 50) return `💚 AQI is **${aqi}** — excellent for asthma patients! Low risk today. Normal activities are safe. Always keep your rescue inhaler nearby as a precaution.`;
+    if (aqi <= 100) return `💛 AQI **${aqi}** — asthma patients should take precautions. Carry your rescue inhaler, avoid heavy outdoor exertion, and stay aware of any symptom triggers.`;
+    if (aqi <= 150) return `🟠 AQI **${aqi}** — asthma patients should limit outdoor time significantly. Use controller medications as prescribed, avoid triggers, and stay indoors where possible.`;
+    return `🔴 AQI **${aqi}** — stay indoors! This level can trigger severe asthma attacks. Use your preventer inhaler, keep rescue inhaler accessible, and seek medical help if symptoms worsen.`;
+  }
+
+  if (m.includes('pm2.5') || m.includes('pm 2.5') || m.includes('particulate')) {
+    return `🔬 **PM2.5** stands for Particulate Matter 2.5 micrometers or smaller — about 30x thinner than a human hair!\n\nThese tiny particles are the most dangerous air pollutant because they:\n• Penetrate deep into your lungs\n• Enter your bloodstream\n• Cause heart and lung diseases with long-term exposure\n• Are linked to 7 million premature deaths yearly globally\n\nSources include vehicle exhaust, industrial emissions, burning, and cooking. An AQI above 35 μg/m³ for PM2.5 is considered unhealthy. 🏭`;
+  }
+
+  if (m.includes('pm10')) {
+    return `🌫️ **PM10** refers to particles up to 10 micrometers in diameter. Larger than PM2.5, they're mainly from dust, pollen, mold, and construction.\n\nWhile less deadly than PM2.5, PM10 can still:\n• Irritate airways and trigger allergies\n• Worsen asthma and bronchitis\n• Cause respiratory infections\n\nAnyone with allergies should watch PM10 levels, especially on windy days! 🌬️`;
+  }
+
+  if (m.includes('indoor') || m.includes('home') || m.includes('house') || m.includes('window')) {
+    return `🏠 Here are the best ways to improve indoor air quality:\n\n• 🌱 Add air-purifying plants (Spider plant, Peace lily, Snake plant)\n• 🔧 Use an air purifier with HEPA filter\n• 🪟 Keep windows closed on high AQI days\n• 💨 Use exhaust fans while cooking\n• 🚭 No smoking indoors — ever\n• 🧹 Vacuum regularly with HEPA-filter vacuum\n• 💧 Maintain indoor humidity 40-60%\n• 🕯️ Avoid synthetic air fresheners — use natural ventilation instead\n\nYour indoor air can be 5x more polluted than outdoors on bad AQI days! 😮`;
+  }
+
+  if (m.includes('winter') || m.includes('season') || m.includes('why') || m.includes('cause') || m.includes('high aqi')) {
+    return `❄️ AQI spikes in winter for several reasons:\n\n• **Temperature Inversion** — cold air traps pollutants near the ground instead of letting them disperse upward\n• **Crop burning** — common in North India during Nov-Dec\n• **Diwali firecrackers** — massive short-term spikes\n• **Heating systems** — more coal/wood burning\n• **Less wind** — stagnant air accumulates pollutants\n• **Less rainfall** — no natural cleansing\n\nDelhi's AQI can hit 400-500 in winter for these combined reasons. Coastal cities like Mumbai and Chennai generally have better winter air due to sea breezes. 🌊`;
+  }
+
+  if (m.includes('delhi') || m.includes('mumbai') || m.includes('bangalore') || m.includes('bengaluru')) {
+    return `🏙️ You can check real-time AQI for any Indian city on the **Dashboard** or **Compare** page!\n\nGenerally:\n• **Delhi** — Often has India's worst AQI, especially Oct-Feb (can hit 400+)\n• **Mumbai** — Moderate most of year, sea breeze helps\n• **Bangalore** — Usually Moderate, better than Delhi\n• **Chennai** — Generally Good to Moderate\n\nWant me to give advice based on a specific city's AQI? Just tell me the city! 📍`;
+  }
+
+  if (m.includes('hello') || m.includes('hi') || m.includes('hey') || m.includes('good morning') || m.includes('good evening')) {
+    const name = window._userName || 'there';
+    return `Hello ${name}! 👋 I'm A4, your Air Aware AI Assistant. ${aqi ? `The current AQI in ${city} is **${aqi}** (${info?.label}). ` : ''}How can I help you today? Ask me anything about air quality, health advice, or pollution! 🌿`;
+  }
+
+  if (m.includes('safe') || m.includes('today') || m.includes('current') || m.includes('now')) {
+    if (!aqi) return "I don't have your current AQI data. Please click 'Refresh' in the AQI bar above! 🔄";
+    if (aqi <= 50) return `✅ AQI in ${city} is **${aqi}** — Excellent! Air quality is great today. You can safely enjoy all outdoor activities without any precautions. 🌿`;
+    if (aqi <= 100) return `🟡 AQI in ${city} is **${aqi}** — Moderate. Generally safe for most people. Unusually sensitive individuals may want to limit prolonged outdoor exertion.`;
+    if (aqi <= 150) return `🟠 AQI in ${city} is **${aqi}** — Caution advised. Sensitive groups (children, elderly, respiratory conditions) should reduce outdoor activities.`;
+    if (aqi <= 200) return `🔴 AQI in ${city} is **${aqi}** — Unhealthy! Limit outdoor activities, wear a mask if going out. Everyone may experience health effects.`;
+    return `🚨 AQI in ${city} is **${aqi}** — Dangerous! Please stay indoors, keep windows closed, and avoid all outdoor exposure as much as possible.`;
+  }
+
+  // Default
+  return `🤖 I'm A4, your Air Aware AI Assistant! ${aqi ? `Current AQI in ${city} is **${aqi}** (${info?.label}).` : ''}\n\nI can help you with air quality questions, health advice, mask recommendations, outdoor activity safety, and more.\n\nCould you rephrase your question? Try asking something like:\n• "Is it safe to go outside?"\n• "What mask should I wear?"\n• "Tips for asthma patients" 😊`;
+}
+
+// ── ADD MESSAGE ──
+function addMessage(role, text) {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  const avatarContent = role === 'bot' ? '🤖' : (window._userName?.[0]?.toUpperCase() || '👤');
+  div.innerHTML = `
+    <div class="msg-avatar">${avatarContent}</div>
+    <div>
+      <div class="msg-bubble">${formatText(text)}</div>
+      <div class="msg-time">${now}</div>
+    </div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function formatText(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/\n/g,'<br/>');
+}
+
+// ── TYPING INDICATOR ──
+function showTyping() {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.id = 'typingMsg';
+  div.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+function hideTyping() {
+  const el = document.getElementById('typingMsg');
+  if(el) el.remove();
+}
+
+// ── CLEAR CHAT ──
+window.clearChat = function() {
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('suggestions').style.display = 'flex';
+  conversationHistory = [];
+  greetUser(window._userName);
+};
+
+// ── INPUT HELPERS ──
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+</script>
+</body>
+</html>

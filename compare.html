@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Air Aware — Compare Cities</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{
+  --teal:#0d9488;--teal-light:#14b8a6;--teal-dark:#0f766e;
+  --bg:#f1f5f9;--bg2:#e8f0f7;--card:#ffffff;--card-border:rgba(0,0,0,0.08);
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --nav-bg:rgba(255,255,255,0.95);--nav-border:rgba(0,0,0,0.08);
+  --input-bg:#ffffff;--input-border:#e2e8f0;
+  --shadow:0 4px 24px rgba(0,0,0,0.08);--shadow-lg:0 8px 40px rgba(0,0,0,0.12);
+}
+[data-theme="dark"]{
+  --teal:#f59e0b;--teal-light:#fbbf24;--teal-dark:#d97706;
+  --bg:#0a0a0f;--bg2:#0f0f18;--card:#1a1a24;--card-border:rgba(255,255,255,0.07);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+  --nav-bg:rgba(10,10,15,0.96);--nav-border:rgba(255,255,255,0.07);
+  --input-bg:#0f0f18;--input-border:rgba(255,255,255,0.1);
+  --shadow:0 4px 24px rgba(0,0,0,0.3);--shadow-lg:0 8px 40px rgba(0,0,0,0.5);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .4s,color .4s;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);backdrop-filter:blur(16px);height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;}
+.nav-logo{display:flex;align-items:center;gap:7px;text-decoration:none;flex-shrink:0;}
+.nav-logo img{width:26px;height:26px;object-fit:contain;border-radius:6px;}
+.nav-logo span{font-size:1rem;font-weight:700;color:var(--teal);}
+.nav-links{display:flex;align-items:center;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;}
+.nav-links::-webkit-scrollbar{display:none;}
+.nav-link{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;font-size:0.78rem;font-weight:500;color:var(--text2);text-decoration:none;white-space:nowrap;transition:all .2s;}
+.nav-link:hover{background:rgba(13,148,136,0.08);color:var(--teal);}
+.nav-link.active{background:rgba(13,148,136,0.12);color:var(--teal);font-weight:600;}
+[data-theme="dark"] .nav-link:hover,[data-theme="dark"] .nav-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto;}
+.nav-user{display:flex;align-items:center;gap:6px;font-size:0.8rem;font-weight:600;color:var(--text2);}
+.nav-user .dot{width:8px;height:8px;background:#f59e0b;border-radius:50%;}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:none;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:all .2s;}
+.icon-btn:hover{background:var(--card);color:var(--teal);}
+.btn-logout{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--card-border);background:transparent;color:var(--text2);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;}
+.btn-logout:hover{border-color:#ef4444;color:#ef4444;}
+.hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:4px;}
+.hamburger span{width:20px;height:2px;background:var(--text);border-radius:2px;display:block;}
+.mobile-drawer{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;z-index:999;background:var(--nav-bg);backdrop-filter:blur(16px);padding:16px;flex-direction:column;gap:4px;overflow-y:auto;}
+.mobile-drawer.open{display:flex;}
+.drawer-link{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:0.95rem;font-weight:500;color:var(--text2);text-decoration:none;transition:all .2s;}
+.drawer-link:hover,.drawer-link.active{background:rgba(13,148,136,0.1);color:var(--teal);}
+[data-theme="dark"] .drawer-link:hover,[data-theme="dark"] .drawer-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.drawer-divider{height:1px;background:var(--card-border);margin:8px 0;}
+.drawer-user{display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:0.95rem;font-weight:600;color:var(--text);}
+
+/* MAIN */
+.main{padding:72px 16px 100px;max-width:960px;margin:0 auto;}
+.page-title{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:4px;}
+.page-sub{font-size:0.85rem;color:var(--text2);margin-bottom:20px;}
+
+/* CITY SLOTS */
+.slots-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+.city-slot{background:var(--card);border:2px dashed var(--card-border);border-radius:16px;padding:14px;transition:all .3s;}
+.city-slot.filled{border-style:solid;border-color:var(--card-border);}
+.slot-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.slot-label{font-size:0.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;}
+.slot-remove{width:22px;height:22px;border-radius:6px;border:none;background:rgba(239,68,68,0.1);color:#ef4444;cursor:pointer;font-size:0.7rem;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.slot-remove:hover{background:rgba(239,68,68,0.2);}
+.slot-search{display:flex;gap:6px;}
+.slot-input{flex:1;padding:8px 10px;border-radius:8px;border:1.5px solid var(--input-border);background:var(--input-bg);color:var(--text);font-size:0.82rem;font-family:'Outfit',sans-serif;outline:none;transition:all .2s;}
+.slot-input:focus{border-color:var(--teal);}
+.slot-input::placeholder{color:var(--text3);}
+.slot-btn{padding:8px 12px;border-radius:8px;border:none;background:var(--teal);color:white;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:all .2s;}
+.slot-btn:hover{background:var(--teal-dark);}
+.slot-data{display:none;}
+.slot-data.show{display:block;}
+.slot-city-name{font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.slot-aqi-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.slot-aqi-val{font-size:2rem;font-weight:800;line-height:1;}
+.slot-badge{padding:3px 10px;border-radius:99px;font-size:0.68rem;font-weight:700;color:white;}
+.slot-mini-polls{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:8px;}
+.mini-poll{background:var(--bg);border-radius:8px;padding:6px 4px;text-align:center;}
+.mini-poll-name{font-size:0.6rem;color:var(--text3);margin-bottom:2px;}
+.mini-poll-val{font-size:0.8rem;font-weight:700;}
+.slot-loading{text-align:center;padding:20px 0;color:var(--text3);font-size:0.82rem;display:none;}
+.slot-loading.show{display:block;}
+
+/* QUICK ADD CITIES */
+.quick-section{margin-bottom:24px;}
+.quick-title{font-size:0.8rem;font-weight:700;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;}
+.quick-pills{display:flex;flex-wrap:wrap;gap:8px;}
+.quick-pill{padding:6px 14px;border-radius:99px;border:1.5px solid var(--input-border);background:var(--card);color:var(--text2);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;}
+.quick-pill:hover{border-color:var(--teal);color:var(--teal);background:rgba(13,148,136,0.05);}
+[data-theme="dark"] .quick-pill:hover{border-color:#f59e0b;color:#f59e0b;}
+
+/* COMPARISON TABLE */
+.compare-table-wrap{background:var(--card);border:1px solid var(--card-border);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:24px;}
+.compare-table{width:100%;border-collapse:collapse;}
+.compare-table th{padding:12px 16px;font-size:0.75rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;background:var(--bg2);border-bottom:1px solid var(--card-border);text-align:left;}
+.compare-table td{padding:12px 16px;font-size:0.85rem;color:var(--text);border-bottom:1px solid var(--card-border);vertical-align:middle;}
+.compare-table tr:last-child td{border-bottom:none;}
+.compare-table tr:hover td{background:rgba(13,148,136,0.03);}
+[data-theme="dark"] .compare-table tr:hover td{background:rgba(245,158,11,0.03);}
+.rank-badge{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;color:white;}
+
+/* BAR CHART */
+.chart-card{background:var(--card);border:1px solid var(--card-border);border-radius:20px;padding:20px;box-shadow:var(--shadow);margin-bottom:24px;}
+.chart-title{font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:16px;}
+.chart-wrap{position:relative;height:220px;}
+
+/* WINNER CARD */
+.winner-section{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
+.winner-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:16px;box-shadow:var(--shadow);text-align:center;}
+.winner-icon{font-size:2rem;margin-bottom:8px;}
+.winner-label{font-size:0.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.winner-city{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:4px;}
+.winner-aqi{font-size:1.4rem;font-weight:800;}
+
+/* FLOATING CHATBOT */
+.chat-float{position:fixed;bottom:24px;right:20px;z-index:998;}
+.chat-float-btn{width:54px;height:54px;border-radius:50%;background:var(--teal);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(13,148,136,0.45);animation:chatPulse 2.5s ease-in-out infinite;transition:all .3s;}
+.chat-float-btn:hover{transform:scale(1.1);}
+.chat-float-btn i{font-size:1.3rem;color:white;}
+@keyframes chatPulse{0%,100%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 0 rgba(13,148,136,0.3);}50%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 10px rgba(13,148,136,0);}}
+.chat-tooltip{position:absolute;bottom:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:6px 12px;font-size:0.75rem;font-weight:600;color:var(--text);white-space:nowrap;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;}
+.chat-float:hover .chat-tooltip{opacity:1;}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:48px 24px;color:var(--text3);}
+.empty-state i{font-size:2.5rem;margin-bottom:12px;display:block;}
+.empty-state p{font-size:0.9rem;}
+
+/* AQI colors */
+.aqi-good{color:#16a34a;}.aqi-mod{color:#ca8a04;}.aqi-usg{color:#ea580c;}.aqi-unh{color:#dc2626;}.aqi-vunh{color:#7c3aed;}.aqi-haz{color:#7f1d1d;}
+
+@media(max-width:768px){
+  .nav-links,.nav-user,.btn-logout{display:none;}
+  .hamburger{display:flex;}
+  .slots-row{grid-template-columns:1fr;}
+  .winner-section{grid-template-columns:1fr 1fr;}
+  .compare-table-wrap{overflow-x:auto;}
+}
+@media(max-width:480px){
+  .winner-section{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="dashboard.html" class="nav-logo">
+    <img src="aa.jpeg" alt="Air Aware"/>
+    <span>AirAware</span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+    <a class="nav-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+    <a class="nav-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+    <a class="nav-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+    <a class="nav-link active" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+    <a class="nav-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+    <a class="nav-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chat</a>
+    <a class="nav-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+    <a class="nav-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  </div>
+  <div class="nav-right">
+    <button class="icon-btn" id="themeToggle"><i class="fa-solid fa-sun" id="themeIcon"></i></button>
+    <div class="nav-user"><span class="dot"></span><span id="navUserName">User</span></div>
+    <button class="btn-logout" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleDrawer()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- MOBILE DRAWER -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-user"><span>👋</span><span id="drawerUserName">User</span></div>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+  <a class="drawer-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+  <a class="drawer-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+  <a class="drawer-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+  <a class="drawer-link active" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+  <a class="drawer-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+  <a class="drawer-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chatbot</a>
+  <a class="drawer-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+  <a class="drawer-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" id="drawerLogout" style="color:#ef4444"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-title">🔄 Compare Cities</div>
+  <p class="page-sub">Compare real-time AQI across up to 3 cities side by side</p>
+
+  <!-- QUICK ADD -->
+  <div class="quick-section">
+    <div class="quick-title">Quick Add Indian Cities</div>
+    <div class="quick-pills">
+      <button class="quick-pill" onclick="quickAdd('Delhi')">🏙️ Delhi</button>
+      <button class="quick-pill" onclick="quickAdd('Mumbai')">🌊 Mumbai</button>
+      <button class="quick-pill" onclick="quickAdd('Bangalore')">🌿 Bangalore</button>
+      <button class="quick-pill" onclick="quickAdd('Chennai')">☀️ Chennai</button>
+      <button class="quick-pill" onclick="quickAdd('Kolkata')">🎨 Kolkata</button>
+      <button class="quick-pill" onclick="quickAdd('Hyderabad')">💎 Hyderabad</button>
+      <button class="quick-pill" onclick="quickAdd('Pune')">🏔️ Pune</button>
+      <button class="quick-pill" onclick="quickAdd('Ahmedabad')">🪁 Ahmedabad</button>
+      <button class="quick-pill" onclick="quickAdd('Jaipur')">🏯 Jaipur</button>
+      <button class="quick-pill" onclick="quickAdd('Lucknow')">🕌 Lucknow</button>
+    </div>
+  </div>
+
+  <!-- CITY SLOTS -->
+  <div class="slots-row" id="slotsRow">
+    <!-- Slot 1 -->
+    <div class="city-slot" id="slot0">
+      <div class="slot-header">
+        <span class="slot-label">City 1</span>
+        <button class="slot-remove" onclick="clearSlot(0)" style="display:none" id="remove0"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="slot-search" id="search0">
+        <input class="slot-input" id="input0" placeholder="Search city..." onkeydown="if(event.key==='Enter')addCity(0)"/>
+        <button class="slot-btn" onclick="addCity(0)">Add</button>
+      </div>
+      <div class="slot-loading" id="loading0">Fetching data...</div>
+      <div class="slot-data" id="data0"></div>
+    </div>
+    <!-- Slot 2 -->
+    <div class="city-slot" id="slot1">
+      <div class="slot-header">
+        <span class="slot-label">City 2</span>
+        <button class="slot-remove" onclick="clearSlot(1)" style="display:none" id="remove1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="slot-search" id="search1">
+        <input class="slot-input" id="input1" placeholder="Search city..." onkeydown="if(event.key==='Enter')addCity(1)"/>
+        <button class="slot-btn" onclick="addCity(1)">Add</button>
+      </div>
+      <div class="slot-loading" id="loading1">Fetching data...</div>
+      <div class="slot-data" id="data1"></div>
+    </div>
+    <!-- Slot 3 -->
+    <div class="city-slot" id="slot2">
+      <div class="slot-header">
+        <span class="slot-label">City 3</span>
+        <button class="slot-remove" onclick="clearSlot(2)" style="display:none" id="remove2"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="slot-search" id="search2">
+        <input class="slot-input" id="input2" placeholder="Search city..." onkeydown="if(event.key==='Enter')addCity(2)"/>
+        <button class="slot-btn" onclick="addCity(2)">Add</button>
+      </div>
+      <div class="slot-loading" id="loading2">Fetching data...</div>
+      <div class="slot-data" id="data2"></div>
+    </div>
+  </div>
+
+  <!-- WINNER/LOSER -->
+  <div class="winner-section" id="winnerSection" style="display:none">
+    <div class="winner-card">
+      <div class="winner-icon">🏆</div>
+      <div class="winner-label">Cleanest Air</div>
+      <div class="winner-city" id="winnerCity">—</div>
+      <div class="winner-aqi aqi-good" id="winnerAqi">—</div>
+    </div>
+    <div class="winner-card">
+      <div class="winner-icon">⚠️</div>
+      <div class="winner-label">Most Polluted</div>
+      <div class="winner-city" id="loserCity">—</div>
+      <div class="winner-aqi aqi-unh" id="loserAqi">—</div>
+    </div>
+  </div>
+
+  <!-- BAR CHART -->
+  <div class="chart-card" id="chartCard" style="display:none">
+    <div class="chart-title">📊 AQI Comparison Chart</div>
+    <div class="chart-wrap"><canvas id="compareChart"></canvas></div>
+  </div>
+
+  <!-- COMPARISON TABLE -->
+  <div class="compare-table-wrap" id="tableWrap" style="display:none">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>City</th>
+          <th>AQI</th>
+          <th>Status</th>
+          <th>PM2.5</th>
+          <th>PM10</th>
+          <th>NO₂</th>
+          <th>O₃</th>
+        </tr>
+      </thead>
+      <tbody id="compareTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div class="empty-state" id="emptyState">
+    <i class="fa-solid fa-city"></i>
+    <p>Add at least 2 cities above to start comparing their air quality</p>
+  </div>
+</div>
+
+<!-- FLOATING CHATBOT -->
+<div class="chat-float">
+  <div class="chat-tooltip">A4 AI Assistant</div>
+  <button class="chat-float-btn" onclick="window.location.href='chatbot.html'">
+    <i class="fa-solid fa-robot"></i>
+  </button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+const firebaseConfig = {
+  apiKey:"AIzaSyDZO2hrovVxBhXPIpNvk_7AAKcOaUPKcZ4",
+  authDomain:"airaware-3ee4f.firebaseapp.com",
+  projectId:"airaware-3ee4f",
+  storageBucket:"airaware-3ee4f.firebasestorage.app",
+  messagingSenderId:"630822228326",
+  appId:"1:630822228326:web:78e36eb41c50a4412278a7"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+onAuthStateChanged(auth, (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const name = user.displayName || user.email.split('@')[0];
+  document.getElementById('navUserName').textContent = name.split(' ')[0];
+  document.getElementById('drawerUserName').textContent = name;
+});
+document.getElementById('btnLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+document.getElementById('drawerLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+</script>
+
+<script>
+const WAQI_TOKEN = "112d5fe071295b33b2f8a950a1dfb608fdf7e11c";
+const cityData = [null, null, null]; // stores fetched data per slot
+let compareChart = null;
+
+// AQI info
+function getAQIInfo(aqi) {
+  if (aqi <= 50) return {label:'Good', color:'#16a34a', cls:'aqi-good', bg:'#16a34a'};
+  if (aqi <= 100) return {label:'Moderate', color:'#ca8a04', cls:'aqi-mod', bg:'#ca8a04'};
+  if (aqi <= 150) return {label:'Unhealthy (SG)', color:'#ea580c', cls:'aqi-usg', bg:'#ea580c'};
+  if (aqi <= 200) return {label:'Unhealthy', color:'#dc2626', cls:'aqi-unh', bg:'#dc2626'};
+  if (aqi <= 300) return {label:'Very Unhealthy', color:'#7c3aed', cls:'aqi-vunh', bg:'#7c3aed'};
+  return {label:'Hazardous', color:'#7f1d1d', cls:'aqi-haz', bg:'#7f1d1d'};
+}
+
+// Fetch with search fallback
+async function fetchCityData(q) {
+  // Try direct
+  try {
+    const res = await fetch(`https://api.waqi.info/feed/${encodeURIComponent(q)}/?token=${WAQI_TOKEN}`);
+    const json = await res.json();
+    if (json.status === 'ok') return json.data;
+  } catch(e) {}
+  // Search fallback
+  const res2 = await fetch(`https://api.waqi.info/search/?token=${WAQI_TOKEN}&keyword=${encodeURIComponent(q)}`);
+  const json2 = await res2.json();
+  if (json2.status === 'ok' && json2.data && json2.data.length > 0) {
+    const best = json2.data.find(d => d.aqi && d.aqi !== '-') || json2.data[0];
+    const res3 = await fetch(`https://api.waqi.info/feed/@${best.uid}/?token=${WAQI_TOKEN}`);
+    const json3 = await res3.json();
+    if (json3.status === 'ok') return json3.data;
+  }
+  throw new Error('Not found');
+}
+
+// Add city to slot
+window.addCity = async function(slotIndex) {
+  const q = document.getElementById(`input${slotIndex}`).value.trim();
+  if (!q) return;
+  setSlotLoading(slotIndex, true);
+  try {
+    const data = await fetchCityData(q);
+    cityData[slotIndex] = data;
+    renderSlot(slotIndex, data);
+    updateComparison();
+  } catch(e) {
+    setSlotLoading(slotIndex, false);
+    document.getElementById(`input${slotIndex}`).style.borderColor = '#ef4444';
+    setTimeout(() => document.getElementById(`input${slotIndex}`).style.borderColor = '', 2000);
+    alert(`Could not find "${q}". Try a different city name.`);
+  }
+};
+
+// Quick add
+window.quickAdd = function(cityName) {
+  const emptySlot = cityData.findIndex(d => d === null);
+  if (emptySlot === -1) { alert('All 3 slots are filled. Remove a city first.'); return; }
+  document.getElementById(`input${emptySlot}`).value = cityName;
+  addCity(emptySlot);
+};
+
+// Render slot data
+function renderSlot(idx, data) {
+  const aqi = data.aqi;
+  const info = getAQIInfo(aqi);
+  const city = data.city?.name || 'Unknown';
+  const iaqi = data.iaqi || {};
+  const pm25 = iaqi.pm25?.v ?? 'N/A';
+  const pm10 = iaqi.pm10?.v ?? 'N/A';
+  const no2 = iaqi.no2?.v ?? 'N/A';
+  const o3 = iaqi.o3?.v ?? 'N/A';
+
+  document.getElementById(`slot${idx}`).classList.add('filled');
+  document.getElementById(`search${idx}`).style.display = 'none';
+  document.getElementById(`loading${idx}`).classList.remove('show');
+  document.getElementById(`remove${idx}`).style.display = 'flex';
+
+  const dataEl = document.getElementById(`data${idx}`);
+  dataEl.innerHTML = `
+    <div class="slot-city-name" title="${city}">${city}</div>
+    <div class="slot-aqi-row">
+      <div class="slot-aqi-val ${info.cls}">${aqi}</div>
+      <span class="slot-badge" style="background:${info.bg}">${info.label}</span>
+    </div>
+    <div class="slot-mini-polls">
+      <div class="mini-poll"><div class="mini-poll-name">PM2.5</div><div class="mini-poll-val ${info.cls}">${pm25}</div></div>
+      <div class="mini-poll"><div class="mini-poll-name">PM10</div><div class="mini-poll-val">${pm10}</div></div>
+      <div class="mini-poll"><div class="mini-poll-name">NO₂</div><div class="mini-poll-val">${no2}</div></div>
+    </div>
+  `;
+  dataEl.classList.add('show');
+}
+
+function setSlotLoading(idx, loading) {
+  document.getElementById(`loading${idx}`).classList.toggle('show', loading);
+  if (loading) document.getElementById(`search${idx}`).style.display = 'none';
+}
+
+// Clear slot
+window.clearSlot = function(idx) {
+  cityData[idx] = null;
+  document.getElementById(`slot${idx}`).classList.remove('filled');
+  document.getElementById(`search${idx}`).style.display = 'flex';
+  document.getElementById(`loading${idx}`).classList.remove('show');
+  document.getElementById(`remove${idx}`).style.display = 'none';
+  document.getElementById(`data${idx}`).classList.remove('show');
+  document.getElementById(`data${idx}`).innerHTML = '';
+  document.getElementById(`input${idx}`).value = '';
+  updateComparison();
+};
+
+// Update comparison section
+function updateComparison() {
+  const filled = cityData.filter(d => d !== null);
+  const emptyState = document.getElementById('emptyState');
+  const chartCard = document.getElementById('chartCard');
+  const tableWrap = document.getElementById('tableWrap');
+  const winnerSection = document.getElementById('winnerSection');
+
+  if (filled.length < 2) {
+    emptyState.style.display = 'block';
+    chartCard.style.display = 'none';
+    tableWrap.style.display = 'none';
+    winnerSection.style.display = 'none';
+    return;
+  }
+
+  emptyState.style.display = 'none';
+  chartCard.style.display = 'block';
+  tableWrap.style.display = 'block';
+  winnerSection.style.display = 'grid';
+
+  // Sort by AQI
+  const sorted = [...filled].sort((a, b) => a.aqi - b.aqi);
+
+  // Winner/Loser
+  const best = sorted[0];
+  const worst = sorted[sorted.length - 1];
+  const bestInfo = getAQIInfo(best.aqi);
+  const worstInfo = getAQIInfo(worst.aqi);
+  document.getElementById('winnerCity').textContent = best.city?.name || '—';
+  document.getElementById('winnerAqi').textContent = best.aqi;
+  document.getElementById('winnerAqi').className = `winner-aqi ${bestInfo.cls}`;
+  document.getElementById('loserCity').textContent = worst.city?.name || '—';
+  document.getElementById('loserAqi').textContent = worst.aqi;
+  document.getElementById('loserAqi').className = `winner-aqi ${worstInfo.cls}`;
+
+  // Chart
+  buildCompareChart(filled);
+
+  // Table
+  buildTable(sorted);
+}
+
+function buildCompareChart(cities) {
+  const ctx = document.getElementById('compareChart').getContext('2d');
+  if (compareChart) compareChart.destroy();
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const textColor = isDark ? '#475569' : '#94a3b8';
+
+  compareChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: cities.map(d => d.city?.name?.split(',')[0] || 'City'),
+      datasets: [{
+        label: 'AQI',
+        data: cities.map(d => d.aqi),
+        backgroundColor: cities.map(d => getAQIInfo(d.aqi).color + 'cc'),
+        borderColor: cities.map(d => getAQIInfo(d.aqi).color),
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {display: false},
+        tooltip: { callbacks: { label: ctx => ` AQI ${ctx.parsed.y}` } }
+      },
+      scales: {
+        x: { grid:{color:gridColor}, ticks:{color:textColor, font:{size:11, weight:'600'}} },
+        y: { grid:{color:gridColor}, ticks:{color:textColor, font:{size:11}}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+function buildTable(sorted) {
+  const rankColors = ['#f59e0b', '#94a3b8', '#ea580c'];
+  const tbody = document.getElementById('compareTableBody');
+  tbody.innerHTML = sorted.map((d, i) => {
+    const info = getAQIInfo(d.aqi);
+    const iaqi = d.iaqi || {};
+    return `
+      <tr>
+        <td><span class="rank-badge" style="background:${rankColors[i]||'#64748b'}">${i+1}</span></td>
+        <td><strong>${d.city?.name?.split(',')[0] || '—'}</strong></td>
+        <td><strong class="${info.cls}">${d.aqi}</strong></td>
+        <td><span style="background:${info.bg};color:white;padding:3px 10px;border-radius:99px;font-size:0.7rem;font-weight:700">${info.label}</span></td>
+        <td>${iaqi.pm25?.v ?? 'N/A'}</td>
+        <td>${iaqi.pm10?.v ?? 'N/A'}</td>
+        <td>${iaqi.no2?.v ?? 'N/A'}</td>
+        <td>${iaqi.o3?.v ?? 'N/A'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Theme
+const html = document.documentElement;
+let isDark = localStorage.getItem('aa-theme') === 'dark';
+function applyTheme() {
+  html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', () => { isDark = !isDark; localStorage.setItem('aa-theme', isDark ? 'dark' : 'light'); applyTheme(); if(compareChart) { const f = cityData.filter(Boolean); if(f.length>=2) buildCompareChart(f); } });
+
+// Mobile drawer
+function toggleDrawer() { document.getElementById('mobileDrawer').classList.toggle('open'); }
+document.addEventListener('click', (e) => {
+  const d = document.getElementById('mobileDrawer'), h = document.getElementById('hamburger');
+  if (!d.contains(e.target) && !h.contains(e.target)) d.classList.remove('open');
+});
+
+// Auto load Delhi + Mumbai on first visit
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('input0').value = 'Delhi';
+    addCity(0);
+    setTimeout(() => {
+      document.getElementById('input1').value = 'Mumbai';
+      addCity(1);
+    }, 800);
+  }, 500);
+});
+</script>
+</body>
+</html>

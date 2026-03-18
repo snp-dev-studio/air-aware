@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Air Aware — Pollution Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root{
+  --teal:#0d9488;--teal-light:#14b8a6;--teal-dark:#0f766e;
+  --bg:#f1f5f9;--card:#ffffff;--card-border:rgba(0,0,0,0.08);
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --nav-bg:rgba(255,255,255,0.95);--nav-border:rgba(0,0,0,0.08);
+  --input-bg:#ffffff;--input-border:#e2e8f0;
+  --shadow:0 4px 24px rgba(0,0,0,0.08);
+  --panel-bg:rgba(255,255,255,0.97);
+}
+[data-theme="dark"]{
+  --teal:#f59e0b;--teal-light:#fbbf24;--teal-dark:#d97706;
+  --bg:#0a0a0f;--card:#1a1a24;--card-border:rgba(255,255,255,0.07);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+  --nav-bg:rgba(10,10,15,0.96);--nav-border:rgba(255,255,255,0.07);
+  --input-bg:#0f0f18;--input-border:rgba(255,255,255,0.1);
+  --shadow:0 4px 24px rgba(0,0,0,0.4);
+  --panel-bg:rgba(18,18,28,0.97);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh;transition:background .4s,color .4s;}
+nav{position:fixed;top:0;left:0;right:0;z-index:2000;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);backdrop-filter:blur(16px);height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;}
+.nav-logo{display:flex;align-items:center;gap:7px;text-decoration:none;flex-shrink:0;}
+.nav-logo img{width:26px;height:26px;object-fit:contain;border-radius:6px;}
+.nav-logo span{font-size:1rem;font-weight:700;color:var(--teal);}
+.nav-links{display:flex;align-items:center;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;}
+.nav-links::-webkit-scrollbar{display:none;}
+.nav-link{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;font-size:0.78rem;font-weight:500;color:var(--text2);text-decoration:none;white-space:nowrap;transition:all .2s;}
+.nav-link:hover{background:rgba(13,148,136,0.08);color:var(--teal);}
+.nav-link.active{background:rgba(13,148,136,0.12);color:var(--teal);font-weight:600;}
+[data-theme="dark"] .nav-link:hover,[data-theme="dark"] .nav-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto;}
+.nav-user{display:flex;align-items:center;gap:6px;font-size:0.8rem;font-weight:600;color:var(--text2);}
+.nav-user .dot{width:8px;height:8px;background:#f59e0b;border-radius:50%;}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:none;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:all .2s;}
+.icon-btn:hover{background:var(--card);color:var(--teal);}
+.btn-logout{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--card-border);background:transparent;color:var(--text2);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;}
+.btn-logout:hover{border-color:#ef4444;color:#ef4444;}
+.hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:4px;}
+.hamburger span{width:20px;height:2px;background:var(--text);border-radius:2px;display:block;}
+.mobile-drawer{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;z-index:1999;background:var(--nav-bg);backdrop-filter:blur(16px);padding:16px;flex-direction:column;gap:4px;overflow-y:auto;}
+.mobile-drawer.open{display:flex;}
+.drawer-link{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:0.95rem;font-weight:500;color:var(--text2);text-decoration:none;transition:all .2s;}
+.drawer-link:hover,.drawer-link.active{background:rgba(13,148,136,0.1);color:var(--teal);}
+[data-theme="dark"] .drawer-link:hover,[data-theme="dark"] .drawer-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.drawer-divider{height:1px;background:var(--card-border);margin:8px 0;}
+.drawer-user{display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:0.95rem;font-weight:600;color:var(--text);}
+#map{position:fixed;top:56px;left:0;right:0;bottom:0;z-index:1;}
+.map-search{position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:1500;display:flex;gap:8px;background:var(--panel-bg);backdrop-filter:blur(16px);border:1px solid var(--card-border);border-radius:16px;padding:10px;box-shadow:var(--shadow);width:calc(100% - 32px);max-width:520px;}
+.map-input-wrap{flex:1;position:relative;}
+.map-input-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:0.85rem;pointer-events:none;}
+.map-input{width:100%;padding:9px 12px 9px 34px;border-radius:10px;border:1.5px solid var(--input-border);background:var(--input-bg);color:var(--text);font-size:0.88rem;font-family:'Outfit',sans-serif;outline:none;transition:all .25s;}
+.map-input:focus{border-color:var(--teal);}
+.map-input::placeholder{color:var(--text3);}
+.btn-map-search{padding:9px 18px;border-radius:10px;border:none;background:var(--teal);color:white;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:all .25s;}
+.btn-map-search:hover{background:var(--teal-dark);}
+.btn-map-locate{padding:9px 12px;border-radius:10px;border:1.5px solid var(--input-border);background:var(--input-bg);color:var(--text2);font-size:0.85rem;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:5px;font-family:'Outfit',sans-serif;white-space:nowrap;}
+.btn-map-locate:hover{border-color:var(--teal);color:var(--teal);}
+.aqi-legend{position:fixed;bottom:90px;left:16px;z-index:1500;background:var(--panel-bg);backdrop-filter:blur(16px);border:1px solid var(--card-border);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);min-width:160px;}
+.legend-title{font-size:0.72rem;font-weight:700;color:var(--text);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.legend-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.legend-label{font-size:0.75rem;color:var(--text2);}
+.city-info-panel{position:fixed;bottom:90px;right:16px;z-index:1500;background:var(--panel-bg);backdrop-filter:blur(16px);border:1px solid var(--card-border);border-radius:16px;padding:16px;box-shadow:var(--shadow);width:200px;display:none;}
+.city-info-panel.show{display:block;}
+.panel-close{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.9rem;}
+.panel-city-lbl{font-size:0.72rem;font-weight:700;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:1px;}
+.panel-name{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:8px;}
+.panel-aqi-val{font-size:2.2rem;font-weight:800;line-height:1;margin-bottom:4px;}
+.panel-badge{display:inline-block;padding:4px 14px;border-radius:99px;font-size:0.72rem;font-weight:700;color:white;margin-bottom:12px;}
+.panel-btn{width:100%;padding:8px;border-radius:10px;border:none;background:var(--teal);color:white;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .25s;}
+.panel-btn:hover{background:var(--teal-dark);}
+.map-toast{position:fixed;top:78px;left:50%;transform:translateX(-50%);z-index:1600;background:rgba(15,118,110,0.95);color:white;padding:7px 18px;border-radius:99px;font-size:0.8rem;font-weight:600;box-shadow:var(--shadow);opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.map-toast.show{opacity:1;}
+.chat-float{position:fixed;bottom:24px;right:20px;z-index:1500;}
+.chat-float-btn{width:54px;height:54px;border-radius:50%;background:var(--teal);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(13,148,136,0.45);animation:chatPulse 2.5s ease-in-out infinite;transition:all .3s;}
+.chat-float-btn:hover{transform:scale(1.1);}
+.chat-float-btn i{font-size:1.3rem;color:white;}
+@keyframes chatPulse{0%,100%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 0 rgba(13,148,136,0.3);}50%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 10px rgba(13,148,136,0);}}
+.chat-tooltip{position:absolute;bottom:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:6px 12px;font-size:0.75rem;font-weight:600;color:var(--text);white-space:nowrap;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;}
+.chat-float:hover .chat-tooltip{opacity:1;}
+.aqi-marker{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:white;border:2px solid rgba(255,255,255,0.8);box-shadow:0 2px 10px rgba(0,0,0,0.3);cursor:pointer;}
+.leaflet-popup-content-wrapper{border-radius:12px!important;font-family:'Outfit',sans-serif!important;}
+.leaflet-popup-content{margin:12px 16px!important;font-family:'Outfit',sans-serif!important;}
+.popup-city{font-size:0.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
+.popup-aqi{font-size:1.8rem;font-weight:800;line-height:1;margin-bottom:4px;}
+.popup-badge{display:inline-block;padding:3px 12px;border-radius:99px;font-size:0.7rem;font-weight:700;color:white;}
+@media(max-width:768px){.nav-links,.nav-user,.btn-logout{display:none;}.hamburger{display:flex;}.aqi-legend{display:none;}.city-info-panel{width:160px;bottom:80px;}.map-search{flex-wrap:wrap;}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="dashboard.html" class="nav-logo"><img src="aa.jpeg" alt="Air Aware"/><span>AirAware</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+    <a class="nav-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+    <a class="nav-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+    <a class="nav-link active" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+    <a class="nav-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+    <a class="nav-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+    <a class="nav-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chat</a>
+    <a class="nav-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+    <a class="nav-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  </div>
+  <div class="nav-right">
+    <button class="icon-btn" id="themeToggle"><i class="fa-solid fa-sun" id="themeIcon"></i></button>
+    <div class="nav-user"><span class="dot"></span><span id="navUserName">User</span></div>
+    <button class="btn-logout" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></div>
+</nav>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-user"><span>👋</span><span id="drawerUserName">User</span></div>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+  <a class="drawer-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+  <a class="drawer-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+  <a class="drawer-link active" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+  <a class="drawer-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+  <a class="drawer-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+  <a class="drawer-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chatbot</a>
+  <a class="drawer-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+  <a class="drawer-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" id="drawerLogout" style="color:#ef4444"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</div>
+<div class="map-toast" id="mapToast"></div>
+<div class="map-search">
+  <div class="map-input-wrap">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="text" class="map-input" id="mapCityInput" placeholder="Search any city on map..."/>
+  </div>
+  <button class="btn-map-search" id="btnSearch">Search</button>
+  <button class="btn-map-locate" id="btnLocate"><i class="fa-solid fa-location-crosshairs"></i> Me</button>
+</div>
+<div id="map"></div>
+<div class="aqi-legend">
+  <div class="legend-title">AQI Scale</div>
+  <div class="legend-row"><div class="legend-dot" style="background:#16a34a"></div><div class="legend-label">0–50 Good</div></div>
+  <div class="legend-row"><div class="legend-dot" style="background:#ca8a04"></div><div class="legend-label">51–100 Moderate</div></div>
+  <div class="legend-row"><div class="legend-dot" style="background:#ea580c"></div><div class="legend-label">101–150 Unhealthy SG</div></div>
+  <div class="legend-row"><div class="legend-dot" style="background:#dc2626"></div><div class="legend-label">151–200 Unhealthy</div></div>
+  <div class="legend-row"><div class="legend-dot" style="background:#7c3aed"></div><div class="legend-label">201–300 Very Unhealthy</div></div>
+  <div class="legend-row"><div class="legend-dot" style="background:#7f1d1d"></div><div class="legend-label">301–500 Hazardous</div></div>
+</div>
+<div class="city-info-panel" id="cityPanel">
+  <button class="panel-close" id="panelClose"><i class="fa-solid fa-xmark"></i></button>
+  <div class="panel-city-lbl">LOCATION</div>
+  <div class="panel-name" id="panelName">—</div>
+  <div class="panel-aqi-val" id="panelAqi">—</div>
+  <div class="panel-badge" id="panelBadge">—</div><br/><br/>
+  <button class="panel-btn" onclick="window.location.href='dashboard.html'">Full Dashboard →</button>
+</div>
+<div class="chat-float">
+  <div class="chat-tooltip">A4 AI Assistant</div>
+  <button class="chat-float-btn" onclick="window.location.href='chatbot.html'"><i class="fa-solid fa-robot"></i></button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+const app = initializeApp({apiKey:"AIzaSyDZO2hrovVxBhXPIpNvk_7AAKcOaUPKcZ4",authDomain:"airaware-3ee4f.firebaseapp.com",projectId:"airaware-3ee4f",storageBucket:"airaware-3ee4f.firebasestorage.app",messagingSenderId:"630822228326",appId:"1:630822228326:web:78e36eb41c50a4412278a7"});
+const auth = getAuth(app);
+onAuthStateChanged(auth, (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const name = user.displayName || user.email.split('@')[0];
+  document.getElementById('navUserName').textContent = name.split(' ')[0];
+  document.getElementById('drawerUserName').textContent = name;
+});
+document.getElementById('btnLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+document.getElementById('drawerLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const WAQI = "112d5fe071295b33b2f8a950a1dfb608fdf7e11c";
+const html = document.documentElement;
+let isDark = localStorage.getItem('aa-theme') === 'dark';
+let _map, _base;
+
+function applyTheme() {
+  html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+  if (_base) _base.setUrl(isDark ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png');
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', () => { isDark = !isDark; localStorage.setItem('aa-theme', isDark ? 'dark' : 'light'); applyTheme(); });
+function toggleDrawer() { document.getElementById('mobileDrawer').classList.toggle('open'); }
+document.addEventListener('click', e => { const d=document.getElementById('mobileDrawer'),h=document.getElementById('hamburger'); if(d&&h&&!d.contains(e.target)&&!h.contains(e.target)) d.classList.remove('open'); });
+document.getElementById('panelClose').addEventListener('click', () => document.getElementById('cityPanel').classList.remove('show'));
+
+function toast(msg, dur=2500) {
+  const t = document.getElementById('mapToast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+function aqiInfo(aqi) {
+  if(aqi<=50) return {label:'Good',color:'#16a34a'};
+  if(aqi<=100) return {label:'Moderate',color:'#ca8a04'};
+  if(aqi<=150) return {label:'Unhealthy (SG)',color:'#ea580c'};
+  if(aqi<=200) return {label:'Unhealthy',color:'#dc2626'};
+  if(aqi<=300) return {label:'Very Unhealthy',color:'#7c3aed'};
+  return {label:'Hazardous',color:'#7f1d1d'};
+}
+function showPanel(name, aqi, info) {
+  document.getElementById('panelName').textContent = (name||'').split(',')[0];
+  document.getElementById('panelAqi').textContent = aqi;
+  document.getElementById('panelAqi').style.color = info.color;
+  document.getElementById('panelBadge').textContent = info.label;
+  document.getElementById('panelBadge').style.background = info.color;
+  document.getElementById('cityPanel').classList.add('show');
+}
+function mkIcon(aqi, info, size=44) {
+  return L.divIcon({ className:'', html:`<div class="aqi-marker" style="background:${info.color};width:${size}px;height:${size}px;font-size:${size>44?'0.85rem':'0.7rem'}">${aqi}</div>`, iconSize:[size,size], iconAnchor:[size/2,size/2], popupAnchor:[0,-size/2-4] });
+}
+function popup(name, aqi, info) {
+  return `<div class="popup-city">${(name||'').toUpperCase().split(',')[0]}</div><div class="popup-aqi" style="color:${info.color}">${aqi}</div><div class="popup-badge" style="background:${info.color}">${info.label}</div>`;
+}
+
+async function waqi(q) {
+  const r = await fetch(`https://api.waqi.info/feed/${encodeURIComponent(q)}/?token=${WAQI}`);
+  const j = await r.json();
+  if(j.status==='ok') return j.data;
+  throw new Error('not found');
+}
+async function waqiSearch(q) {
+  try { return await waqi(q); } catch(e) {}
+  const r = await fetch(`https://api.waqi.info/search/?token=${WAQI}&keyword=${encodeURIComponent(q)}`);
+  const j = await r.json();
+  if(j.status==='ok' && j.data?.length) {
+    const best = j.data.find(x=>x.aqi&&x.aqi!=='-')||j.data[0];
+    return await waqi(`@${best.uid}`);
+  }
+  throw new Error('not found');
+}
+
+function initMap() {
+  _map = L.map('map', {zoomControl:true}).setView([20.5937,78.9629],5);
+  _base = L.tileLayer(isDark?'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png':'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {attribution:'© CartoDB',subdomains:'abcd',maxZoom:19}).addTo(_map);
+  L.tileLayer(`https://tiles.waqi.info/tiles/usepa-aqi/{z}/{x}/{y}.png?token=${WAQI}`,{opacity:0.7,attribution:'© WAQI',maxZoom:19}).addTo(_map);
+
+  const cities=[{n:'New Delhi',la:28.6139,lo:77.2090,q:'delhi'},{n:'Mumbai',la:19.0760,lo:72.8777,q:'mumbai'},{n:'Bangalore',la:12.9716,lo:77.5946,q:'bangalore'},{n:'Chennai',la:13.0827,lo:80.2707,q:'chennai'},{n:'Kolkata',la:22.5726,lo:88.3639,q:'kolkata'},{n:'Hyderabad',la:17.3850,lo:78.4867,q:'hyderabad'},{n:'Pune',la:18.5204,lo:73.8567,q:'pune'},{n:'Ahmedabad',la:23.0225,lo:72.5714,q:'ahmedabad'},{n:'Jaipur',la:26.9124,lo:75.7873,q:'jaipur'},{n:'Lucknow',la:26.8467,lo:80.9462,q:'lucknow'}];
+  cities.forEach(async c => {
+    try {
+      const d = await waqi(c.q);
+      const info = aqiInfo(d.aqi);
+      const m = L.marker([c.la,c.lo],{icon:mkIcon(d.aqi,info)}).addTo(_map);
+      m.bindPopup(popup(c.n,d.aqi,info));
+      m.on('click',()=>showPanel(c.n,d.aqi,info));
+    } catch(e) {}
+  });
+
+  // Wire up buttons
+  document.getElementById('btnSearch').addEventListener('click', doSearch);
+  document.getElementById('mapCityInput').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+  document.getElementById('btnLocate').addEventListener('click', doLocate);
+}
+
+async function doSearch() {
+  const q = document.getElementById('mapCityInput').value.trim();
+  if(!q) return;
+  toast('Searching for '+q+'...');
+  try {
+    const d = await waqiSearch(q);
+    const aqi=d.aqi, lat=d.city?.geo?.[0]||20, lon=d.city?.geo?.[1]||78, name=d.city?.name||q;
+    const info=aqiInfo(aqi);
+    _map.flyTo([lat,lon],11,{animate:true,duration:1.5});
+    L.marker([lat,lon],{icon:mkIcon(aqi,info,54)}).addTo(_map).bindPopup(popup(name,aqi,info)).openPopup();
+    showPanel(name,aqi,info);
+    toast('Found: '+name.split(',')[0]);
+  } catch(e) { toast('City not found. Try another name.'); }
+}
+
+function doLocate() {
+  if(!navigator.geolocation){toast('Geolocation not supported.');return;}
+  toast('Getting your location...');
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const {latitude:lat,longitude:lon}=pos.coords;
+    _map.flyTo([lat,lon],12,{animate:true,duration:1.5});
+    try {
+      const d=await waqi(`geo:${lat};${lon}`);
+      const aqi=d.aqi,info=aqiInfo(aqi),name=d.city?.name||'Your Location';
+      L.circle([lat,lon],{color:info.color,fillColor:info.color,fillOpacity:0.15,radius:3000,weight:2}).addTo(_map);
+      L.marker([lat,lon],{icon:mkIcon(aqi,info)}).addTo(_map).bindPopup(popup('YOUR LOCATION',aqi,info)).openPopup();
+      showPanel(name,aqi,info);
+      toast('Location: '+name.split(',')[0]);
+    } catch(e){toast('Could not fetch AQI for your location.');}
+  }, err=>{toast(err.code===1?'Location permission denied.':'Could not get location.');});
+}
+
+// Call initMap after all functions are defined
+if (typeof L !== 'undefined') {
+  initMap();
+} else {
+  document.addEventListener('DOMContentLoaded', initMap);
+}
+</script>
+</body>
+</html>

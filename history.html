@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Air Aware — AQI History</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<style>
+:root{
+  --teal:#0d9488;--teal-light:#14b8a6;--teal-dark:#0f766e;
+  --bg:#f1f5f9;--bg2:#e8f0f7;--card:#ffffff;--card-border:rgba(0,0,0,0.08);
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --nav-bg:rgba(255,255,255,0.95);--nav-border:rgba(0,0,0,0.08);
+  --input-bg:#ffffff;--input-border:#e2e8f0;
+  --shadow:0 4px 24px rgba(0,0,0,0.08);--shadow-lg:0 8px 40px rgba(0,0,0,0.12);
+  --table-row-hover:rgba(13,148,136,0.04);
+}
+[data-theme="dark"]{
+  --teal:#f59e0b;--teal-light:#fbbf24;--teal-dark:#d97706;
+  --bg:#0a0a0f;--bg2:#0f0f18;--card:#1a1a24;--card-border:rgba(255,255,255,0.07);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+  --nav-bg:rgba(10,10,15,0.96);--nav-border:rgba(255,255,255,0.07);
+  --input-bg:#0f0f18;--input-border:rgba(255,255,255,0.1);
+  --shadow:0 4px 24px rgba(0,0,0,0.3);--shadow-lg:0 8px 40px rgba(0,0,0,0.5);
+  --table-row-hover:rgba(245,158,11,0.04);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .4s,color .4s;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);backdrop-filter:blur(16px);height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;}
+.nav-logo{display:flex;align-items:center;gap:7px;text-decoration:none;flex-shrink:0;}
+.nav-logo img{width:26px;height:26px;object-fit:contain;border-radius:6px;}
+.nav-logo span{font-size:1rem;font-weight:700;color:var(--teal);}
+.nav-links{display:flex;align-items:center;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;}
+.nav-links::-webkit-scrollbar{display:none;}
+.nav-link{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;font-size:0.78rem;font-weight:500;color:var(--text2);text-decoration:none;white-space:nowrap;transition:all .2s;}
+.nav-link:hover{background:rgba(13,148,136,0.08);color:var(--teal);}
+.nav-link.active{background:rgba(13,148,136,0.12);color:var(--teal);font-weight:600;}
+[data-theme="dark"] .nav-link:hover,[data-theme="dark"] .nav-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto;}
+.nav-user{display:flex;align-items:center;gap:6px;font-size:0.8rem;font-weight:600;color:var(--text2);}
+.nav-user .dot{width:8px;height:8px;background:#f59e0b;border-radius:50%;}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:none;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:all .2s;}
+.icon-btn:hover{background:var(--card);color:var(--teal);}
+.btn-logout{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--card-border);background:transparent;color:var(--text2);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;}
+.btn-logout:hover{border-color:#ef4444;color:#ef4444;}
+.hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:4px;}
+.hamburger span{width:20px;height:2px;background:var(--text);border-radius:2px;display:block;}
+.mobile-drawer{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;z-index:999;background:var(--nav-bg);backdrop-filter:blur(16px);padding:16px;flex-direction:column;gap:4px;overflow-y:auto;}
+.mobile-drawer.open{display:flex;}
+.drawer-link{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:0.95rem;font-weight:500;color:var(--text2);text-decoration:none;transition:all .2s;}
+.drawer-link:hover,.drawer-link.active{background:rgba(13,148,136,0.1);color:var(--teal);}
+[data-theme="dark"] .drawer-link:hover,[data-theme="dark"] .drawer-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.drawer-divider{height:1px;background:var(--card-border);margin:8px 0;}
+.drawer-user{display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:0.95rem;font-weight:600;color:var(--text);}
+
+/* MAIN */
+.main{padding:72px 16px 100px;max-width:960px;margin:0 auto;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+.page-title{font-size:1.4rem;font-weight:800;color:var(--text);}
+.page-sub{font-size:0.85rem;color:var(--text2);margin-top:3px;}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.btn-action{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;border:1.5px solid var(--input-border);background:var(--card);color:var(--text2);font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;}
+.btn-action:hover{border-color:var(--teal);color:var(--teal);}
+.btn-action.danger:hover{border-color:#ef4444;color:#ef4444;}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:16px;box-shadow:var(--shadow);text-align:center;}
+.stat-icon{font-size:1.4rem;margin-bottom:6px;}
+.stat-val{font-size:1.6rem;font-weight:800;color:var(--teal);line-height:1;margin-bottom:3px;}
+.stat-label{font-size:0.72rem;color:var(--text3);font-weight:500;}
+
+/* FILTERS */
+.filters-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+.filter-select{padding:8px 12px;border-radius:10px;border:1.5px solid var(--input-border);background:var(--input-bg);color:var(--text);font-size:0.82rem;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;transition:all .2s;}
+.filter-select:focus{border-color:var(--teal);}
+.filter-label{font-size:0.8rem;font-weight:600;color:var(--text2);}
+
+/* CHART */
+.chart-card{background:var(--card);border:1px solid var(--card-border);border-radius:20px;padding:20px;box-shadow:var(--shadow);margin-bottom:20px;}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+.chart-title{font-size:0.95rem;font-weight:700;color:var(--text);}
+.chart-wrap{position:relative;height:200px;}
+
+/* HISTORY TABLE */
+.table-card{background:var(--card);border:1px solid var(--card-border);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:20px;}
+.table-head-row{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--card-border);}
+.table-head-title{font-size:0.95rem;font-weight:700;color:var(--text);}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:10px 16px;font-size:0.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;background:var(--bg2);border-bottom:1px solid var(--card-border);text-align:left;white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--card-border);transition:background .15s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--table-row-hover);}
+tbody td{padding:10px 16px;font-size:0.83rem;color:var(--text);white-space:nowrap;}
+.aqi-chip{display:inline-block;padding:3px 10px;border-radius:99px;font-size:0.7rem;font-weight:700;color:white;}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 24px;color:var(--text3);}
+.empty-state i{font-size:3rem;margin-bottom:16px;display:block;opacity:.4;}
+.empty-state h3{font-size:1rem;font-weight:700;color:var(--text2);margin-bottom:8px;}
+.empty-state p{font-size:0.85rem;line-height:1.6;}
+.empty-state a{color:var(--teal);text-decoration:none;font-weight:600;}
+
+/* LOADING */
+.loading-row{text-align:center;padding:40px;color:var(--text3);}
+.spinner{display:inline-block;width:28px;height:28px;border:3px solid var(--card-border);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;}
+.page-btn{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--input-border);background:var(--card);color:var(--text2);font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.page-btn:hover,.page-btn.active{background:var(--teal);border-color:var(--teal);color:white;}
+.page-info{font-size:0.82rem;color:var(--text3);}
+
+/* FLOATING CHATBOT */
+.chat-float{position:fixed;bottom:24px;right:20px;z-index:998;}
+.chat-float-btn{width:54px;height:54px;border-radius:50%;background:var(--teal);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(13,148,136,0.45);animation:chatPulse 2.5s ease-in-out infinite;transition:all .3s;}
+.chat-float-btn:hover{transform:scale(1.1);}
+.chat-float-btn i{font-size:1.3rem;color:white;}
+@keyframes chatPulse{0%,100%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 0 rgba(13,148,136,0.3);}50%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 10px rgba(13,148,136,0);}}
+.chat-tooltip{position:absolute;bottom:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:6px 12px;font-size:0.75rem;font-weight:600;color:var(--text);white-space:nowrap;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;}
+.chat-float:hover .chat-tooltip{opacity:1;}
+
+/* AQI colors */
+.aqi-good{color:#16a34a;}.aqi-mod{color:#ca8a04;}.aqi-usg{color:#ea580c;}.aqi-unh{color:#dc2626;}.aqi-vunh{color:#7c3aed;}.aqi-haz{color:#7f1d1d;}
+
+@media(max-width:768px){
+  .nav-links,.nav-user,.btn-logout{display:none;}
+  .hamburger{display:flex;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .page-header{flex-direction:column;}
+}
+@media(max-width:400px){
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="dashboard.html" class="nav-logo">
+    <img src="aa.jpeg" alt="Air Aware"/>
+    <span>AirAware</span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+    <a class="nav-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+    <a class="nav-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+    <a class="nav-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+    <a class="nav-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+    <a class="nav-link active" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+    <a class="nav-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chat</a>
+    <a class="nav-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+    <a class="nav-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  </div>
+  <div class="nav-right">
+    <button class="icon-btn" id="themeToggle"><i class="fa-solid fa-sun" id="themeIcon"></i></button>
+    <div class="nav-user"><span class="dot"></span><span id="navUserName">User</span></div>
+    <button class="btn-logout" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleDrawer()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- MOBILE DRAWER -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-user"><span>👋</span><span id="drawerUserName">User</span></div>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+  <a class="drawer-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+  <a class="drawer-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+  <a class="drawer-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+  <a class="drawer-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+  <a class="drawer-link active" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+  <a class="drawer-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chatbot</a>
+  <a class="drawer-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+  <a class="drawer-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" id="drawerLogout" style="color:#ef4444"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">📅 AQI History</div>
+      <div class="page-sub">Your personal air quality tracking record from Firestore</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-action" onclick="exportCSV()"><i class="fa-solid fa-download"></i> Export CSV</button>
+      <button class="btn-action danger" onclick="confirmClear()"><i class="fa-solid fa-trash"></i> Clear History</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-val" id="statTotal">—</div>
+      <div class="stat-label">Total Records</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🌿</div>
+      <div class="stat-val aqi-good" id="statBest">—</div>
+      <div class="stat-label">Best AQI</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔴</div>
+      <div class="stat-val aqi-unh" id="statWorst">—</div>
+      <div class="stat-label">Worst AQI</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📈</div>
+      <div class="stat-val" id="statAvg" style="color:var(--teal)">—</div>
+      <div class="stat-label">Average AQI</div>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters-bar">
+    <span class="filter-label">Filter:</span>
+    <select class="filter-select" id="filterDays" onchange="applyFilter()">
+      <option value="7">Last 7 days</option>
+      <option value="14">Last 14 days</option>
+      <option value="30" selected>Last 30 days</option>
+      <option value="90">Last 90 days</option>
+      <option value="0">All time</option>
+    </select>
+    <select class="filter-select" id="filterCity" onchange="applyFilter()">
+      <option value="">All cities</option>
+    </select>
+    <select class="filter-select" id="filterAqi" onchange="applyFilter()">
+      <option value="">All AQI levels</option>
+      <option value="good">Good (0–50)</option>
+      <option value="moderate">Moderate (51–100)</option>
+      <option value="usg">Unhealthy SG (101–150)</option>
+      <option value="unhealthy">Unhealthy (151–200)</option>
+      <option value="very">Very Unhealthy (201–300)</option>
+      <option value="hazardous">Hazardous (300+)</option>
+    </select>
+  </div>
+
+  <!-- TREND CHART -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title">📈 AQI Trend Over Time</div>
+      <span style="font-size:0.75rem;color:var(--text3)" id="chartSubtitle">Loading...</span>
+    </div>
+    <div class="chart-wrap"><canvas id="historyChart"></canvas></div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <div class="table-head-row">
+      <div class="table-head-title">📋 History Records</div>
+      <span style="font-size:0.78rem;color:var(--text3)" id="recordCount">Loading...</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date & Time</th>
+            <th>City</th>
+            <th>AQI</th>
+            <th>Status</th>
+            <th>PM2.5</th>
+            <th>PM10</th>
+            <th>CO</th>
+          </tr>
+        </thead>
+        <tbody id="historyTbody">
+          <tr><td colspan="8" class="loading-row"><div class="spinner"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination" style="display:none"></div>
+  </div>
+</div>
+
+<!-- FLOATING CHATBOT -->
+<div class="chat-float">
+  <div class="chat-tooltip">A4 AI Assistant</div>
+  <button class="chat-float-btn" onclick="window.location.href='chatbot.html'">
+    <i class="fa-solid fa-robot"></i>
+  </button>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs, deleteDoc, doc, limit } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyDZO2hrovVxBhXPIpNvk_7AAKcOaUPKcZ4",
+  authDomain:"airaware-3ee4f.firebaseapp.com",
+  projectId:"airaware-3ee4f",
+  storageBucket:"airaware-3ee4f.firebasestorage.app",
+  messagingSenderId:"630822228326",
+  appId:"1:630822228326:web:78e36eb41c50a4412278a7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let allRecords = [];
+let filteredRecords = [];
+let currentPage = 1;
+const PAGE_SIZE = 15;
+let historyChart = null;
+let currentUser = null;
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  currentUser = user;
+  const name = user.displayName || user.email.split('@')[0];
+  document.getElementById('navUserName').textContent = name.split(' ')[0];
+  document.getElementById('drawerUserName').textContent = name;
+  await loadHistory(user.uid);
+});
+
+document.getElementById('btnLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+document.getElementById('drawerLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+
+// Load history from Firestore
+async function loadHistory(uid) {
+  try {
+    const q = query(
+      collection(db, 'aqi_history'),
+      where('uid', '==', uid),
+      limit(500)
+    );
+    const snap = await getDocs(q);
+    allRecords = [];
+    snap.forEach(d => {
+      const data = d.data();
+      allRecords.push({ id: d.id, ...data, ts: data.timestamp?.toDate() || new Date() });
+    });
+    // Sort by timestamp descending in JS — no Firestore index needed
+    allRecords.sort((a,b) => b.ts - a.ts);
+
+    // Populate city filter
+    const cities = [...new Set(allRecords.map(r => r.city).filter(Boolean))];
+    const citySelect = document.getElementById('filterCity');
+    cities.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c.split(',')[0];
+      citySelect.appendChild(opt);
+    });
+
+    applyFilter();
+  } catch(e) {
+    console.error('History load error:', e);
+    document.getElementById('historyTbody').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:#ef4444;font-size:0.85rem">Error loading history. Make sure Firestore index exists.</td></tr>`;
+  }
+}
+
+// Apply filters
+window.applyFilter = function() {
+  const days = parseInt(document.getElementById('filterDays').value);
+  const city = document.getElementById('filterCity').value;
+  const aqiFilter = document.getElementById('filterAqi').value;
+  const now = new Date();
+
+  filteredRecords = allRecords.filter(r => {
+    // Days filter
+    if (days > 0) {
+      const cutoff = new Date(now - days * 86400000);
+      if (r.ts < cutoff) return false;
+    }
+    // City filter
+    if (city && r.city !== city) return false;
+    // AQI filter
+    if (aqiFilter) {
+      const aqi = r.aqi;
+      if (aqiFilter === 'good' && !(aqi <= 50)) return false;
+      if (aqiFilter === 'moderate' && !(aqi > 50 && aqi <= 100)) return false;
+      if (aqiFilter === 'usg' && !(aqi > 100 && aqi <= 150)) return false;
+      if (aqiFilter === 'unhealthy' && !(aqi > 150 && aqi <= 200)) return false;
+      if (aqiFilter === 'very' && !(aqi > 200 && aqi <= 300)) return false;
+      if (aqiFilter === 'hazardous' && !(aqi > 300)) return false;
+    }
+    return true;
+  });
+
+  currentPage = 1;
+  updateStats();
+  buildChart();
+  renderTable();
+};
+
+function updateStats() {
+  const total = filteredRecords.length;
+  document.getElementById('statTotal').textContent = total;
+  if (total === 0) {
+    document.getElementById('statBest').textContent = '—';
+    document.getElementById('statWorst').textContent = '—';
+    document.getElementById('statAvg').textContent = '—';
+    return;
+  }
+  const aqis = filteredRecords.map(r => r.aqi).filter(a => typeof a === 'number');
+  document.getElementById('statBest').textContent = Math.min(...aqis);
+  document.getElementById('statWorst').textContent = Math.max(...aqis);
+  document.getElementById('statAvg').textContent = Math.round(aqis.reduce((a,b)=>a+b,0)/aqis.length);
+}
+
+function buildChart() {
+  const ctx = document.getElementById('historyChart').getContext('2d');
+  if (historyChart) historyChart.destroy();
+
+  if (filteredRecords.length === 0) {
+    document.getElementById('chartSubtitle').textContent = 'No data for selected filters';
+    return;
+  }
+
+  // Take last 50 for chart, reverse to chronological
+  const chartData = [...filteredRecords].reverse().slice(-50);
+  document.getElementById('chartSubtitle').textContent = `Showing ${chartData.length} data points`;
+
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const textColor = isDark ? '#475569' : '#94a3b8';
+
+  historyChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartData.map(r => {
+        const d = r.ts;
+        return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      }),
+      datasets: [{
+        label: 'AQI',
+        data: chartData.map(r => r.aqi),
+        borderColor: '#14b8a6',
+        backgroundColor: 'rgba(20,184,166,0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointRadius: chartData.length > 20 ? 2 : 4,
+        pointBackgroundColor: chartData.map(r => getAQIColor(r.aqi)),
+        pointBorderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {display: false},
+        tooltip: {
+          callbacks: {
+            label: ctx => ` AQI ${ctx.parsed.y} — ${getAQILabel(ctx.parsed.y)}`,
+            afterLabel: (ctx) => {
+              const r = chartData[ctx.dataIndex];
+              return r.city ? ` 📍 ${r.city.split(',')[0]}` : '';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {grid:{color:gridColor}, ticks:{color:textColor,font:{size:9},maxTicksLimit:10,maxRotation:45}},
+        y: {grid:{color:gridColor}, ticks:{color:textColor,font:{size:10}}, beginAtZero:true}
+      }
+    }
+  });
+}
+
+function renderTable() {
+  const tbody = document.getElementById('historyTbody');
+  const total = filteredRecords.length;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageRecords = filteredRecords.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('recordCount').textContent = `${total} record${total !== 1 ? 's' : ''}`;
+
+  if (total === 0) {
+    tbody.innerHTML = `
+      <tr><td colspan="8">
+        <div class="empty-state">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <h3>No history yet</h3>
+          <p>Visit the <a href="dashboard.html">Dashboard</a> and search for cities to start building your AQI history.</p>
+        </div>
+      </td></tr>`;
+    document.getElementById('pagination').style.display = 'none';
+    return;
+  }
+
+  tbody.innerHTML = pageRecords.map((r, i) => {
+    const label = getAQILabel(r.aqi);
+    const color = getAQIColor(r.aqi);
+    const iaqi = r.iaqi || {};
+    const dateStr = r.ts ? r.ts.toLocaleString('en-IN', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+    return `
+      <tr>
+        <td style="color:var(--text3);font-size:0.75rem">${start + i + 1}</td>
+        <td>${dateStr}</td>
+        <td><strong>${(r.city||'Unknown').split(',')[0]}</strong></td>
+        <td><strong style="color:${color};font-size:1rem">${r.aqi}</strong></td>
+        <td><span class="aqi-chip" style="background:${color}">${label}</span></td>
+        <td>${iaqi.pm25?.v ?? 'N/A'}</td>
+        <td>${iaqi.pm10?.v ?? 'N/A'}</td>
+        <td>${iaqi.co?.v ?? 'N/A'}</td>
+      </tr>`;
+  }).join('');
+
+  // Pagination
+  if (totalPages > 1) {
+    document.getElementById('pagination').style.display = 'flex';
+    let paginationHTML = `
+      <button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>
+        <i class="fa-solid fa-chevron-left" style="font-size:0.7rem"></i>
+      </button>`;
+    for (let p = 1; p <= Math.min(totalPages, 5); p++) {
+      paginationHTML += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+    }
+    if (totalPages > 5) paginationHTML += `<span class="page-info">... ${totalPages}</span>`;
+    paginationHTML += `
+      <button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>
+        <i class="fa-solid fa-chevron-right" style="font-size:0.7rem"></i>
+      </button>
+      <span class="page-info">${currentPage} / ${totalPages}</span>`;
+    document.getElementById('pagination').innerHTML = paginationHTML;
+  } else {
+    document.getElementById('pagination').style.display = 'none';
+  }
+}
+
+window.goPage = function(p) {
+  const total = filteredRecords.length;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  if (p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderTable();
+  window.scrollTo({top: 0, behavior:'smooth'});
+};
+
+// Export CSV
+window.exportCSV = function() {
+  if (filteredRecords.length === 0) { alert('No records to export.'); return; }
+  const headers = ['#','Date','City','AQI','Status','PM2.5','PM10','CO','NO2','SO2','O3'];
+  const rows = filteredRecords.map((r, i) => {
+    const iaqi = r.iaqi || {};
+    const dateStr = r.ts ? r.ts.toLocaleString() : '';
+    return [i+1, `"${dateStr}"`, `"${(r.city||'').split(',')[0]}"`, r.aqi, getAQILabel(r.aqi),
+      iaqi.pm25?.v??'', iaqi.pm10?.v??'', iaqi.co?.v??'', iaqi.no2?.v??'', iaqi.so2?.v??'', iaqi.o3?.v??''].join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `AirAware_History_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+};
+
+// Clear history
+window.confirmClear = function() {
+  if (!confirm('Are you sure you want to delete ALL your AQI history? This cannot be undone.')) return;
+  clearAllHistory();
+};
+
+async function clearAllHistory() {
+  if (!currentUser) return;
+  try {
+    const q = query(collection(db, 'aqi_history'), where('uid', '==', currentUser.uid));
+    const snap = await getDocs(q);
+    const deletes = snap.docs.map(d => deleteDoc(doc(db, 'aqi_history', d.id)));
+    await Promise.all(deletes);
+    allRecords = [];
+    filteredRecords = [];
+    applyFilter();
+    alert('History cleared successfully.');
+  } catch(e) {
+    alert('Error clearing history. Please try again.');
+  }
+}
+
+// AQI helpers
+function getAQIColor(aqi) {
+  if (aqi <= 50) return '#16a34a';
+  if (aqi <= 100) return '#ca8a04';
+  if (aqi <= 150) return '#ea580c';
+  if (aqi <= 200) return '#dc2626';
+  if (aqi <= 300) return '#7c3aed';
+  return '#7f1d1d';
+}
+function getAQILabel(aqi) {
+  if (aqi <= 50) return 'Good';
+  if (aqi <= 100) return 'Moderate';
+  if (aqi <= 150) return 'Unhealthy (SG)';
+  if (aqi <= 200) return 'Unhealthy';
+  if (aqi <= 300) return 'Very Unhealthy';
+  return 'Hazardous';
+}
+
+// Make buildChart accessible for theme toggle
+window._buildChart = buildChart;
+</script>
+
+<script>
+// THEME
+const html = document.documentElement;
+let isDark = localStorage.getItem('aa-theme') === 'dark';
+function applyTheme() {
+  html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', () => {
+  isDark = !isDark;
+  localStorage.setItem('aa-theme', isDark ? 'dark' : 'light');
+  applyTheme();
+  if (window._buildChart) window._buildChart();
+});
+
+// MOBILE DRAWER
+function toggleDrawer() { document.getElementById('mobileDrawer').classList.toggle('open'); }
+document.addEventListener('click', (e) => {
+  const d = document.getElementById('mobileDrawer'), h = document.getElementById('hamburger');
+  if (!d.contains(e.target) && !h.contains(e.target)) d.classList.remove('open');
+});
+</script>
+</body>
+</html>

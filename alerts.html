@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Air Aware — AQI Alerts</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<style>
+:root{
+  --teal:#0d9488;--teal-light:#14b8a6;--teal-dark:#0f766e;
+  --bg:#f1f5f9;--card:#ffffff;--card-border:rgba(0,0,0,0.08);
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --nav-bg:rgba(255,255,255,0.95);--nav-border:rgba(0,0,0,0.08);
+  --input-bg:#ffffff;--input-border:#e2e8f0;
+  --shadow:0 4px 24px rgba(0,0,0,0.07);--shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+}
+[data-theme="dark"]{
+  --teal:#f59e0b;--teal-light:#fbbf24;--teal-dark:#d97706;
+  --bg:#0a0a0f;--card:#1a1a24;--card-border:rgba(255,255,255,0.07);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+  --nav-bg:rgba(10,10,15,0.96);--nav-border:rgba(255,255,255,0.07);
+  --input-bg:#0f0f18;--input-border:rgba(255,255,255,0.1);
+  --shadow:0 4px 24px rgba(0,0,0,0.3);--shadow-lg:0 8px 32px rgba(0,0,0,0.5);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .4s,color .4s;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);backdrop-filter:blur(16px);height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;}
+.nav-logo{display:flex;align-items:center;gap:7px;text-decoration:none;flex-shrink:0;}
+.nav-logo img{width:26px;height:26px;object-fit:contain;border-radius:6px;}
+.nav-logo span{font-size:1rem;font-weight:700;color:var(--teal);}
+.nav-links{display:flex;align-items:center;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;}
+.nav-links::-webkit-scrollbar{display:none;}
+.nav-link{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;font-size:0.78rem;font-weight:500;color:var(--text2);text-decoration:none;white-space:nowrap;transition:all .2s;}
+.nav-link:hover{background:rgba(13,148,136,0.08);color:var(--teal);}
+.nav-link.active{background:rgba(13,148,136,0.12);color:var(--teal);font-weight:600;}
+[data-theme="dark"] .nav-link:hover,[data-theme="dark"] .nav-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto;}
+.nav-user{display:flex;align-items:center;gap:6px;font-size:0.8rem;font-weight:600;color:var(--text2);}
+.nav-user .dot{width:8px;height:8px;background:#f59e0b;border-radius:50%;}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:none;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:all .2s;}
+.icon-btn:hover{background:var(--card);color:var(--teal);}
+.btn-logout{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--card-border);background:transparent;color:var(--text2);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;}
+.btn-logout:hover{border-color:#ef4444;color:#ef4444;}
+.hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:4px;}
+.hamburger span{width:20px;height:2px;background:var(--text);border-radius:2px;display:block;}
+.mobile-drawer{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;z-index:999;background:var(--nav-bg);backdrop-filter:blur(16px);padding:16px;flex-direction:column;gap:4px;overflow-y:auto;}
+.mobile-drawer.open{display:flex;}
+.drawer-link{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:0.95rem;font-weight:500;color:var(--text2);text-decoration:none;transition:all .2s;}
+.drawer-link:hover,.drawer-link.active{background:rgba(13,148,136,0.1);color:var(--teal);}
+[data-theme="dark"] .drawer-link:hover,[data-theme="dark"] .drawer-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.drawer-divider{height:1px;background:var(--card-border);margin:8px 0;}
+.drawer-user{display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:0.95rem;font-weight:600;color:var(--text);}
+
+/* MAIN */
+.main{padding:72px 16px 100px;max-width:900px;margin:0 auto;}
+.page-header{margin-bottom:24px;}
+.page-title{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:4px;}
+.page-sub{font-size:0.85rem;color:var(--text2);}
+
+/* ADD ALERT CARD */
+.add-card{background:var(--card);border:1px solid var(--card-border);border-radius:20px;padding:22px;box-shadow:var(--shadow);margin-bottom:24px;}
+.add-card-title{font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.add-form{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-label{font-size:0.78rem;font-weight:600;color:var(--text2);}
+.form-input{padding:10px 14px;border-radius:12px;border:1.5px solid var(--input-border);background:var(--input-bg);color:var(--text);font-size:0.9rem;font-family:'Outfit',sans-serif;outline:none;transition:all .25s;}
+.form-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,0.1);}
+[data-theme="dark"] .form-input:focus{box-shadow:0 0 0 3px rgba(245,158,11,0.1);}
+.form-input::placeholder{color:var(--text3);}
+.btn-add{padding:10px 22px;border-radius:12px;border:none;background:var(--teal);color:white;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .25s;white-space:nowrap;display:flex;align-items:center;gap:7px;height:42px;}
+.btn-add:hover{background:var(--teal-dark);transform:translateY(-1px);box-shadow:0 6px 20px rgba(13,148,136,0.3);}
+.btn-add:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+
+/* QUICK CITIES */
+.quick-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.quick-city{padding:5px 12px;border-radius:99px;border:1.5px solid var(--input-border);background:transparent;color:var(--text2);font-size:0.75rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;}
+.quick-city:hover{border-color:var(--teal);color:var(--teal);}
+
+/* MSG */
+.msg-bar{padding:10px 16px;border-radius:12px;font-size:0.83rem;font-weight:500;margin-bottom:16px;display:none;align-items:center;gap:8px;}
+.msg-bar.error{background:rgba(239,68,68,0.1);color:#dc2626;border:1px solid rgba(239,68,68,0.2);display:flex;}
+.msg-bar.success{background:rgba(34,197,94,0.1);color:#16a34a;border:1px solid rgba(34,197,94,0.2);display:flex;}
+
+/* ALERTS LIST */
+.alerts-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.alerts-title{font-size:1rem;font-weight:700;color:var(--text);}
+.alerts-count{font-size:0.78rem;color:var(--text3);background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:99px;}
+.btn-refresh-all{padding:7px 14px;border-radius:10px;border:1.5px solid var(--input-border);background:transparent;color:var(--text2);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;gap:5px;}
+.btn-refresh-all:hover{border-color:var(--teal);color:var(--teal);}
+
+/* ALERT CARDS */
+.alerts-grid{display:flex;flex-direction:column;gap:12px;}
+.alert-card{background:var(--card);border:1px solid var(--card-border);border-radius:18px;padding:18px;box-shadow:var(--shadow);transition:all .3s;position:relative;}
+.alert-card:hover{box-shadow:var(--shadow-lg);}
+.alert-card.triggered{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.03);}
+[data-theme="dark"] .alert-card.triggered{border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05);}
+.alert-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.alert-left{flex:1;}
+.alert-city{font-size:1.05rem;font-weight:800;color:var(--text);margin-bottom:3px;}
+.alert-threshold-row{display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--text2);}
+.threshold-chip{padding:2px 10px;border-radius:99px;background:rgba(13,148,136,0.1);color:var(--teal);font-size:0.72rem;font-weight:700;border:1px solid rgba(13,148,136,0.2);}
+[data-theme="dark"] .threshold-chip{background:rgba(245,158,11,0.1);color:#f59e0b;border-color:rgba(245,158,11,0.2);}
+.alert-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.alert-live-aqi{font-size:1.8rem;font-weight:800;line-height:1;}
+.alert-aqi-badge{padding:3px 12px;border-radius:99px;font-size:0.68rem;font-weight:700;color:white;}
+.alert-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--card-border);}
+.alert-status{display:flex;align-items:center;gap:6px;font-size:0.78rem;font-weight:600;}
+.status-safe{color:#16a34a;}
+.status-triggered{color:#dc2626;}
+.alert-actions{display:flex;gap:6px;}
+.btn-alert-action{padding:5px 12px;border-radius:8px;border:1.5px solid var(--input-border);background:transparent;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;color:var(--text2);display:flex;align-items:center;gap:5px;}
+.btn-alert-action:hover{border-color:var(--teal);color:var(--teal);}
+.btn-alert-delete{color:#ef4444;border-color:rgba(239,68,68,0.2);}
+.btn-alert-delete:hover{border-color:#ef4444;background:rgba(239,68,68,0.05);}
+.alert-loading{font-size:0.75rem;color:var(--text3);font-style:italic;}
+.triggered-banner{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:8px 12px;margin-top:10px;display:flex;align-items:center;gap:8px;font-size:0.78rem;font-weight:600;color:#dc2626;}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 24px;background:var(--card);border:1px solid var(--card-border);border-radius:20px;box-shadow:var(--shadow);}
+.empty-state i{font-size:3rem;color:var(--text3);margin-bottom:16px;display:block;opacity:.4;}
+.empty-state h3{font-size:1rem;font-weight:700;color:var(--text2);margin-bottom:8px;}
+.empty-state p{font-size:0.85rem;color:var(--text3);line-height:1.6;}
+
+/* SPINNER */
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* FLOATING CHATBOT */
+.chat-float{position:fixed;bottom:24px;right:20px;z-index:998;}
+.chat-float-btn{width:54px;height:54px;border-radius:50%;background:var(--teal);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(13,148,136,0.45);animation:chatPulse 2.5s ease-in-out infinite;transition:all .3s;}
+.chat-float-btn:hover{transform:scale(1.1);}
+.chat-float-btn i{font-size:1.3rem;color:white;}
+@keyframes chatPulse{0%,100%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 0 rgba(13,148,136,0.3);}50%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 10px rgba(13,148,136,0);}}
+.chat-tooltip{position:absolute;bottom:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:6px 12px;font-size:0.75rem;font-weight:600;color:var(--text);white-space:nowrap;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;}
+.chat-float:hover .chat-tooltip{opacity:1;}
+
+@media(max-width:768px){
+  .nav-links,.nav-user,.btn-logout{display:none;}
+  .hamburger{display:flex;}
+  .add-form{grid-template-columns:1fr;gap:10px;}
+  .btn-add{width:100%;justify-content:center;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="dashboard.html" class="nav-logo"><img src="aa.jpeg" alt="Air Aware"/><span>AirAware</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+    <a class="nav-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+    <a class="nav-link active" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+    <a class="nav-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+    <a class="nav-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+    <a class="nav-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+    <a class="nav-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chat</a>
+    <a class="nav-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+    <a class="nav-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  </div>
+  <div class="nav-right">
+    <button class="icon-btn" id="themeToggle"><i class="fa-solid fa-sun" id="themeIcon"></i></button>
+    <div class="nav-user"><span class="dot"></span><span id="navUserName">User</span></div>
+    <button class="btn-logout" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-user"><span>👋</span><span id="drawerUserName">User</span></div>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+  <a class="drawer-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+  <a class="drawer-link active" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+  <a class="drawer-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+  <a class="drawer-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+  <a class="drawer-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+  <a class="drawer-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chatbot</a>
+  <a class="drawer-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+  <a class="drawer-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" id="drawerLogout" style="color:#ef4444"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <div class="page-title">🔔 AQI Alerts</div>
+    <div class="page-sub">Set custom AQI thresholds for cities. Get visual warnings when air quality crosses your limit.</div>
+  </div>
+
+  <!-- ADD ALERT -->
+  <div class="add-card">
+    <div class="add-card-title"><i class="fa-solid fa-plus" style="color:var(--teal)"></i> Create New Alert</div>
+    <div class="msg-bar" id="msgBar"><i class="fa-solid fa-circle-info"></i><span id="msgText"></span></div>
+    <div class="add-form">
+      <div class="form-group">
+        <label class="form-label">City Name</label>
+        <input class="form-input" id="alertCity" placeholder="e.g. Delhi, Mumbai..." type="text"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">AQI Threshold (Alert when above)</label>
+        <input class="form-input" id="alertThreshold" placeholder="e.g. 150" type="number" min="1" max="500" value="150"/>
+      </div>
+      <button class="btn-add" id="btnAddAlert" onclick="addAlert()">
+        <i class="fa-solid fa-bell"></i> Add Alert
+      </button>
+    </div>
+    <!-- Quick cities -->
+    <div class="quick-row">
+      <span style="font-size:0.72rem;font-weight:600;color:var(--text3);align-self:center">Quick:</span>
+      <button class="quick-city" onclick="document.getElementById('alertCity').value='Delhi'">Delhi</button>
+      <button class="quick-city" onclick="document.getElementById('alertCity').value='Mumbai'">Mumbai</button>
+      <button class="quick-city" onclick="document.getElementById('alertCity').value='Bangalore'">Bangalore</button>
+      <button class="quick-city" onclick="document.getElementById('alertCity').value='Chennai'">Chennai</button>
+      <button class="quick-city" onclick="document.getElementById('alertCity').value='Kolkata'">Kolkata</button>
+      <button class="quick-city" onclick="document.getElementById('alertCity').value='Hyderabad'">Hyderabad</button>
+      <button class="quick-city" onclick="document.getElementById('alertCity').value='Pune'">Pune</button>
+    </div>
+  </div>
+
+  <!-- ALERTS LIST -->
+  <div class="alerts-header">
+    <div class="alerts-title">Your Active Alerts</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="alerts-count" id="alertsCount">0 alerts</span>
+      <button class="btn-refresh-all" onclick="refreshAllAlerts()"><i class="fa-solid fa-rotate"></i> Refresh All</button>
+    </div>
+  </div>
+
+  <div class="alerts-grid" id="alertsGrid">
+    <div class="empty-state">
+      <i class="fa-regular fa-bell-slash"></i>
+      <h3>No alerts yet</h3>
+      <p>Create your first alert above. Set a city and an AQI threshold — we'll warn you visually when air quality crosses your limit.</p>
+    </div>
+  </div>
+</div>
+
+<!-- FLOATING CHATBOT -->
+<div class="chat-float">
+  <div class="chat-tooltip">A4 AI Assistant</div>
+  <button class="chat-float-btn" onclick="window.location.href='chatbot.html'"><i class="fa-solid fa-robot"></i></button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+const app = initializeApp({apiKey:"AIzaSyDZO2hrovVxBhXPIpNvk_7AAKcOaUPKcZ4",authDomain:"airaware-3ee4f.firebaseapp.com",projectId:"airaware-3ee4f",storageBucket:"airaware-3ee4f.firebasestorage.app",messagingSenderId:"630822228326",appId:"1:630822228326:web:78e36eb41c50a4412278a7"});
+const auth = getAuth(app);
+const db = getFirestore(app);
+const WAQI = "112d5fe071295b33b2f8a950a1dfb608fdf7e11c";
+
+let currentUser = null;
+let userAlerts = [];
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  currentUser = user;
+  const name = user.displayName || user.email.split('@')[0];
+  document.getElementById('navUserName').textContent = name.split(' ')[0];
+  document.getElementById('drawerUserName').textContent = name;
+  await loadAlerts();
+});
+
+document.getElementById('btnLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+document.getElementById('drawerLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+
+// ── LOAD ALERTS ──
+async function loadAlerts() {
+  try {
+    const q = query(collection(db,'alerts'), where('uid','==',currentUser.uid));
+    const snap = await getDocs(q);
+    userAlerts = [];
+    snap.forEach(d => userAlerts.push({id:d.id, ...d.data()}));
+    renderAlerts();
+    // Auto-check live AQI for all alerts
+    userAlerts.forEach(a => checkAlertLiveAQI(a));
+  } catch(e) { console.error('Load alerts error:', e); }
+}
+
+// ── ADD ALERT ──
+window.addAlert = async function() {
+  const city = document.getElementById('alertCity').value.trim();
+  const threshold = parseInt(document.getElementById('alertThreshold').value);
+  if (!city) { showMsg('Please enter a city name.','error'); return; }
+  if (!threshold || threshold < 1 || threshold > 500) { showMsg('Please enter a valid AQI threshold (1–500).','error'); return; }
+  // Check duplicate
+  if (userAlerts.find(a => a.city.toLowerCase() === city.toLowerCase())) {
+    showMsg(`Alert for "${city}" already exists.`,'error'); return;
+  }
+  const btn = document.getElementById('btnAddAlert');
+  btn.innerHTML = '<span class="spin"></span> Adding...'; btn.disabled = true;
+  try {
+    // Verify city exists in WAQI
+    const res = await fetch(`https://api.waqi.info/feed/${encodeURIComponent(city)}/?token=${WAQI}`);
+    const json = await res.json();
+    if (json.status !== 'ok') {
+      // Try search fallback
+      const r2 = await fetch(`https://api.waqi.info/search/?token=${WAQI}&keyword=${encodeURIComponent(city)}`);
+      const j2 = await r2.json();
+      if (j2.status !== 'ok' || !j2.data?.length) throw new Error('City not found');
+    }
+    const cityName = json.status === 'ok' ? (json.data.city?.name || city) : city;
+    const docRef = await addDoc(collection(db,'alerts'), {
+      uid: currentUser.uid,
+      city: cityName,
+      cityQuery: city,
+      threshold,
+      createdAt: serverTimestamp(),
+      enabled: true
+    });
+    userAlerts.push({id:docRef.id, uid:currentUser.uid, city:cityName, cityQuery:city, threshold, enabled:true});
+    document.getElementById('alertCity').value = '';
+    document.getElementById('alertThreshold').value = '150';
+    showMsg(`Alert created for ${cityName} at AQI ${threshold} ✅`, 'success');
+    renderAlerts();
+    checkAlertLiveAQI(userAlerts[userAlerts.length-1]);
+  } catch(e) {
+    showMsg('City not found in WAQI database. Try a major city name.','error');
+  }
+  btn.innerHTML = '<i class="fa-solid fa-bell"></i> Add Alert'; btn.disabled = false;
+};
+
+// ── CHECK LIVE AQI FOR ALERT ──
+async function checkAlertLiveAQI(alert) {
+  const cardEl = document.getElementById(`acard-${alert.id}`);
+  if (!cardEl) return;
+  const aqiEl = cardEl.querySelector('.alert-live-aqi');
+  const badgeEl = cardEl.querySelector('.alert-aqi-badge');
+  const statusEl = cardEl.querySelector('.alert-status');
+  const bannerEl = cardEl.querySelector('.triggered-banner');
+  if (aqiEl) aqiEl.innerHTML = '<span style="font-size:0.75rem;color:var(--text3)">Loading...</span>';
+  try {
+    // Try direct then search
+    let aqi = null;
+    try {
+      const r = await fetch(`https://api.waqi.info/feed/${encodeURIComponent(alert.cityQuery||alert.city)}/?token=${WAQI}`);
+      const j = await r.json();
+      if (j.status==='ok') aqi = j.data.aqi;
+    } catch(e) {}
+    if (!aqi) {
+      const r2 = await fetch(`https://api.waqi.info/search/?token=${WAQI}&keyword=${encodeURIComponent(alert.city)}`);
+      const j2 = await r2.json();
+      if (j2.status==='ok' && j2.data?.length) {
+        const best = j2.data.find(x=>x.aqi&&x.aqi!=='-')||j2.data[0];
+        const r3 = await fetch(`https://api.waqi.info/feed/@${best.uid}/?token=${WAQI}`);
+        const j3 = await r3.json();
+        if (j3.status==='ok') aqi = j3.data.aqi;
+      }
+    }
+    if (!aqi) { if(aqiEl) aqiEl.innerHTML = '<span style="font-size:0.75rem;color:var(--text3)">N/A</span>'; return; }
+    const info = aqiInfo(aqi);
+    const triggered = aqi > alert.threshold;
+    if (aqiEl) { aqiEl.textContent = aqi; aqiEl.style.color = info.color; }
+    if (badgeEl) { badgeEl.textContent = info.label; badgeEl.style.background = info.color; }
+    if (triggered) {
+      cardEl.classList.add('triggered');
+      if (statusEl) statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i><span class="status-triggered">⚠️ TRIGGERED — AQI ${aqi} > ${alert.threshold}</span>`;
+      if (bannerEl) { bannerEl.style.display='flex'; bannerEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Alert triggered! AQI is ${aqi} in ${alert.city.split(',')[0]}, which exceeds your threshold of ${alert.threshold}.`; }
+    } else {
+      cardEl.classList.remove('triggered');
+      if (statusEl) statusEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#16a34a"></i><span class="status-safe">Safe — AQI ${aqi} is below ${alert.threshold}</span>`;
+      if (bannerEl) bannerEl.style.display='none';
+    }
+  } catch(e) {}
+}
+
+// ── DELETE ALERT ──
+window.deleteAlert = async function(id) {
+  if (!confirm('Delete this alert?')) return;
+  try {
+    await deleteDoc(doc(db,'alerts',id));
+    userAlerts = userAlerts.filter(a=>a.id!==id);
+    renderAlerts();
+    showMsg('Alert deleted.','success');
+  } catch(e) { showMsg('Error deleting alert.','error'); }
+};
+
+// ── REFRESH ALL ──
+window.refreshAllAlerts = function() {
+  userAlerts.forEach(a => checkAlertLiveAQI(a));
+  showMsg('Refreshing all alerts...','success');
+};
+
+// ── RENDER ALERTS ──
+function renderAlerts() {
+  const grid = document.getElementById('alertsGrid');
+  document.getElementById('alertsCount').textContent = `${userAlerts.length} alert${userAlerts.length!==1?'s':''}`;
+  if (userAlerts.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><i class="fa-regular fa-bell-slash"></i><h3>No alerts yet</h3><p>Create your first alert above. Set a city and an AQI threshold — we'll warn you visually when air quality crosses your limit.</p></div>`;
+    return;
+  }
+  grid.innerHTML = userAlerts.map(a => `
+    <div class="alert-card" id="acard-${a.id}">
+      <div class="alert-top">
+        <div class="alert-left">
+          <div class="alert-city">📍 ${(a.city||'').split(',')[0]}</div>
+          <div class="alert-threshold-row">
+            <span>Alert when AQI exceeds</span>
+            <span class="threshold-chip">${a.threshold}</span>
+          </div>
+        </div>
+        <div class="alert-right">
+          <div class="alert-live-aqi" style="color:var(--teal)">—</div>
+          <span class="alert-aqi-badge" style="background:var(--teal)">Loading</span>
+        </div>
+      </div>
+      <div class="triggered-banner" style="display:none"></div>
+      <div class="alert-bottom">
+        <div class="alert-status alert-loading"><i class="fa-solid fa-rotate fa-spin" style="color:var(--text3)"></i> Checking live AQI...</div>
+        <div class="alert-actions">
+          <button class="btn-alert-action btn-alert-delete" onclick="deleteAlert('${a.id}')"><i class="fa-solid fa-trash-can"></i> Delete</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── AQI INFO ──
+function aqiInfo(aqi) {
+  if(aqi<=50) return {label:'Good',color:'#16a34a'};
+  if(aqi<=100) return {label:'Moderate',color:'#ca8a04'};
+  if(aqi<=150) return {label:'Unhealthy (SG)',color:'#ea580c'};
+  if(aqi<=200) return {label:'Unhealthy',color:'#dc2626'};
+  if(aqi<=300) return {label:'Very Unhealthy',color:'#7c3aed'};
+  return {label:'Hazardous',color:'#7f1d1d'};
+}
+
+// ── MSG ──
+function showMsg(text, type) {
+  const bar = document.getElementById('msgBar');
+  const span = document.getElementById('msgText');
+  bar.className = 'msg-bar ' + type;
+  span.textContent = text;
+  if (type === 'success') setTimeout(() => bar.style.display='none', 3000);
+}
+</script>
+
+<script>
+// THEME
+const html = document.documentElement;
+let isDark = localStorage.getItem('aa-theme') === 'dark';
+function applyTheme() {
+  html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click', () => { isDark=!isDark; localStorage.setItem('aa-theme',isDark?'dark':'light'); applyTheme(); });
+function toggleDrawer() { document.getElementById('mobileDrawer').classList.toggle('open'); }
+document.addEventListener('click', e => {
+  const d=document.getElementById('mobileDrawer'),h=document.getElementById('hamburger');
+  if(d&&h&&!d.contains(e.target)&&!h.contains(e.target)) d.classList.remove('open');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Air Aware — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<style>
+:root{--teal:#0d9488;--teal-light:#14b8a6;--teal-dark:#0f766e;--bg:#f1f5f9;--card:#ffffff;--card-border:rgba(0,0,0,0.08);--text:#0f172a;--text2:#475569;--text3:#94a3b8;--nav-bg:rgba(255,255,255,0.95);--nav-border:rgba(0,0,0,0.08);--input-bg:#ffffff;--input-border:#e2e8f0;--shadow:0 4px 24px rgba(0,0,0,0.07);--shadow-lg:0 8px 32px rgba(0,0,0,0.12);}
+[data-theme="dark"]{--teal:#f59e0b;--teal-light:#fbbf24;--teal-dark:#d97706;--bg:#0a0a0f;--card:#1a1a24;--card-border:rgba(255,255,255,0.07);--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;--nav-bg:rgba(10,10,15,0.96);--nav-border:rgba(255,255,255,0.07);--input-bg:#0f0f18;--input-border:rgba(255,255,255,0.1);--shadow:0 4px 24px rgba(0,0,0,0.3);--shadow-lg:0 8px 32px rgba(0,0,0,0.5);}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .4s,color .4s;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);backdrop-filter:blur(16px);height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;}
+.nav-logo{display:flex;align-items:center;gap:7px;text-decoration:none;flex-shrink:0;}
+.nav-logo img{width:26px;height:26px;object-fit:contain;border-radius:6px;}
+.nav-logo span{font-size:1rem;font-weight:700;color:var(--teal);}
+.nav-links{display:flex;align-items:center;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;}
+.nav-links::-webkit-scrollbar{display:none;}
+.nav-link{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;font-size:0.78rem;font-weight:500;color:var(--text2);text-decoration:none;white-space:nowrap;transition:all .2s;}
+.nav-link:hover{background:rgba(13,148,136,0.08);color:var(--teal);}
+.nav-link.active{background:rgba(13,148,136,0.12);color:var(--teal);font-weight:600;}
+[data-theme="dark"] .nav-link:hover,[data-theme="dark"] .nav-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto;}
+.nav-user{display:flex;align-items:center;gap:6px;font-size:0.8rem;font-weight:600;color:var(--text2);}
+.nav-user .dot{width:8px;height:8px;background:#f59e0b;border-radius:50%;}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:none;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:all .2s;}
+.icon-btn:hover{background:var(--card);color:var(--teal);}
+.btn-logout{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--card-border);background:transparent;color:var(--text2);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;}
+.btn-logout:hover{border-color:#ef4444;color:#ef4444;}
+.hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:4px;}
+.hamburger span{width:20px;height:2px;background:var(--text);border-radius:2px;display:block;}
+.mobile-drawer{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;z-index:999;background:var(--nav-bg);backdrop-filter:blur(16px);padding:16px;flex-direction:column;gap:4px;overflow-y:auto;}
+.mobile-drawer.open{display:flex;}
+.drawer-link{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:0.95rem;font-weight:500;color:var(--text2);text-decoration:none;transition:all .2s;}
+.drawer-link:hover,.drawer-link.active{background:rgba(13,148,136,0.1);color:var(--teal);}
+[data-theme="dark"] .drawer-link:hover,[data-theme="dark"] .drawer-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.drawer-divider{height:1px;background:var(--card-border);margin:8px 0;}
+.drawer-user{display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:0.95rem;font-weight:600;color:var(--text);}
+.main{padding:72px 16px 100px;max-width:1000px;margin:0 auto;}
+
+/* PASSWORD GATE */
+.pw-gate{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 56px);padding:24px;}
+.pw-card{background:var(--card);border:1px solid var(--card-border);border-radius:24px;padding:36px 32px;max-width:400px;width:100%;box-shadow:var(--shadow-lg);text-align:center;}
+.pw-icon{font-size:2.5rem;margin-bottom:14px;display:block;}
+.pw-title{font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:6px;}
+.pw-sub{font-size:0.82rem;color:var(--text2);margin-bottom:24px;}
+.pw-input-wrap{position:relative;margin-bottom:14px;}
+.pw-input{width:100%;padding:12px 44px 12px 16px;border-radius:12px;border:1.5px solid var(--input-border);background:var(--input-bg);color:var(--text);font-size:0.95rem;font-family:'Outfit',sans-serif;outline:none;transition:all .25s;}
+.pw-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,0.1);}
+.pw-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:1rem;}
+.pw-error{font-size:0.78rem;color:#ef4444;margin-bottom:12px;min-height:18px;}
+.btn-verify{width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--teal),var(--teal-light));color:white;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;}
+.btn-verify:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(13,148,136,0.3);}
+.btn-change-pw{background:none;border:none;color:var(--teal);font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;gap:5px;margin:0 auto;}
+
+/* CHANGE PASSWORD FORM */
+.change-pw-form{display:none;text-align:left;margin-top:16px;border-top:1px solid var(--card-border);padding-top:16px;}
+.change-pw-form.show{display:block;}
+.cpw-label{font-size:0.78rem;font-weight:600;color:var(--text2);margin-bottom:5px;display:block;}
+.cpw-input{width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--input-border);background:var(--input-bg);color:var(--text);font-size:0.88rem;font-family:'Outfit',sans-serif;outline:none;margin-bottom:10px;transition:all .2s;}
+.cpw-input:focus{border-color:var(--teal);}
+.cpw-btns{display:flex;gap:8px;}
+.btn-cpw-save{flex:1;padding:9px;border-radius:10px;border:none;background:var(--teal);color:white;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;}
+.btn-cpw-cancel{flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--input-border);background:transparent;color:var(--text2);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;}
+
+/* ADMIN CONTENT */
+#adminContent{display:none;}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--card);border:1px solid var(--card-border);border-radius:18px;padding:18px;box-shadow:var(--shadow);text-align:center;}
+.stat-icon{font-size:1.6rem;margin-bottom:6px;}
+.stat-val{font-size:1.8rem;font-weight:800;color:var(--teal);margin-bottom:3px;}
+.stat-label{font-size:0.72rem;color:var(--text3);}
+
+/* TABLE */
+.table-card{background:var(--card);border:1px solid var(--card-border);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--card-border);flex-wrap:wrap;gap:10px;}
+.table-title{font-size:1rem;font-weight:700;color:var(--text);}
+.table-search{padding:8px 14px;border-radius:10px;border:1.5px solid var(--input-border);background:var(--input-bg);color:var(--text);font-size:0.82rem;font-family:'Outfit',sans-serif;outline:none;width:200px;}
+.table-search:focus{border-color:var(--teal);}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:11px 16px;font-size:0.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;background:var(--bg);border-bottom:1px solid var(--card-border);text-align:left;white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--card-border);transition:background .15s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:rgba(13,148,136,0.03);}
+[data-theme="dark"] tbody tr:hover{background:rgba(245,158,11,0.03);}
+tbody td{padding:12px 16px;font-size:0.82rem;color:var(--text);vertical-align:middle;}
+.you-badge{padding:2px 8px;border-radius:99px;background:rgba(13,148,136,0.1);color:var(--teal);font-size:0.65rem;font-weight:700;margin-left:6px;}
+[data-theme="dark"] .you-badge{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.btn-del-user{padding:5px 12px;border-radius:8px;border:1.5px solid rgba(239,68,68,0.25);background:transparent;color:#ef4444;font-size:0.72rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;gap:4px;}
+.btn-del-user:hover{background:rgba(239,68,68,0.08);}
+.btn-del-user:disabled{opacity:.4;cursor:not-allowed;}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.admin-title{font-size:1.4rem;font-weight:800;color:var(--text);}
+.btn-lock{padding:8px 16px;border-radius:10px;border:1.5px solid var(--input-border);background:transparent;color:var(--text2);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.btn-lock:hover{border-color:#ef4444;color:#ef4444;}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:3000;padding:10px 22px;border-radius:99px;font-size:0.85rem;font-weight:600;box-shadow:var(--shadow-lg);opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+.toast.success{background:#16a34a;color:white;}
+.toast.error{background:#dc2626;color:white;}
+
+/* CHATBOT */
+.chat-float{position:fixed;bottom:24px;right:20px;z-index:998;}
+.chat-float-btn{width:54px;height:54px;border-radius:50%;background:var(--teal);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(13,148,136,0.45);animation:chatPulse 2.5s ease-in-out infinite;transition:all .3s;}
+.chat-float-btn:hover{transform:scale(1.1);}
+.chat-float-btn i{font-size:1.3rem;color:white;}
+@keyframes chatPulse{0%,100%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 0 rgba(13,148,136,0.3);}50%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 10px rgba(13,148,136,0);}}
+.chat-tooltip{position:absolute;bottom:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:6px 12px;font-size:0.75rem;font-weight:600;color:var(--text);white-space:nowrap;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;}
+.chat-float:hover .chat-tooltip{opacity:1;}
+
+@media(max-width:768px){.nav-links,.nav-user,.btn-logout{display:none;}.hamburger{display:flex;}.stats-row{grid-template-columns:repeat(2,1fr);}.table-wrap{overflow-x:auto;}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="dashboard.html" class="nav-logo"><img src="aa.jpeg" alt="Air Aware"/><span>AirAware</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+    <a class="nav-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+    <a class="nav-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+    <a class="nav-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+    <a class="nav-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+    <a class="nav-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+    <a class="nav-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chat</a>
+    <a class="nav-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+    <a class="nav-link active" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  </div>
+  <div class="nav-right">
+    <button class="icon-btn" id="themeToggle"><i class="fa-solid fa-sun" id="themeIcon"></i></button>
+    <div class="nav-user"><span class="dot"></span><span id="navUserName">User</span></div>
+    <button class="btn-logout" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></div>
+</nav>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-user"><span>👋</span><span id="drawerUserName">User</span></div>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+  <a class="drawer-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+  <a class="drawer-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+  <a class="drawer-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+  <a class="drawer-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+  <a class="drawer-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+  <a class="drawer-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chatbot</a>
+  <a class="drawer-link" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+  <a class="drawer-link active" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" id="drawerLogout" style="color:#ef4444"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- PASSWORD GATE -->
+<div class="pw-gate" id="pwGate" style="display:flex">
+  <div class="pw-card">
+    <span class="pw-icon">🔐</span>
+    <div class="pw-title">Admin Access</div>
+    <div class="pw-sub">Enter the admin password to continue</div>
+    <div class="pw-input-wrap">
+      <input type="password" class="pw-input" id="pwInput" placeholder="Admin password" onkeydown="if(event.key==='Enter')verifyPw()"/>
+      <button class="pw-eye" onclick="togglePwVis()"><i class="fa-regular fa-eye" id="pwEyeIcon"></i></button>
+    </div>
+    <div class="pw-error" id="pwError"></div>
+    <button class="btn-verify" onclick="verifyPw()"><i class="fa-solid fa-shield-halved"></i> Verify</button>
+  </div>
+</div>
+
+<!-- ADMIN CONTENT -->
+<div class="main" id="adminContent">
+  <div class="admin-header">
+    <div class="admin-title">🛡️ Admin Panel</div>
+    <button class="btn-lock" onclick="lockAdmin()"><i class="fa-solid fa-lock"></i> Lock Panel</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-val" id="statUsers">—</div><div class="stat-label">Total Users</div></div>
+    <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-val" id="statRecords">—</div><div class="stat-label">AQI Records</div></div>
+    <div class="stat-card"><div class="stat-icon">🔔</div><div class="stat-val" id="statAlerts">—</div><div class="stat-label">Active Alerts</div></div>
+    <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-val" id="statToday">—</div><div class="stat-label">Today's Records</div></div>
+  </div>
+
+  <!-- USERS TABLE -->
+  <div class="table-card">
+    <div class="table-header">
+      <div class="table-title">All Registered Users</div>
+      <input type="text" class="table-search" id="userSearch" placeholder="Search by email..." oninput="filterUsers()"/>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Email / Login ID</th>
+            <th>User ID</th>
+            <th>Registered On</th>
+            <th>AQI Records</th>
+            <th>Alerts</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="usersTbody">
+          <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3)"><i class="fa-solid fa-spinner fa-spin"></i> Loading users...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="chat-float">
+  <div class="chat-tooltip">A4 AI Assistant</div>
+  <button class="chat-float-btn" onclick="window.location.href='chatbot.html'"><i class="fa-solid fa-robot"></i></button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+const app = initializeApp({apiKey:"AIzaSyDZO2hrovVxBhXPIpNvk_7AAKcOaUPKcZ4",authDomain:"airaware-3ee4f.firebaseapp.com",projectId:"airaware-3ee4f",storageBucket:"airaware-3ee4f.firebasestorage.app",messagingSenderId:"630822228326",appId:"1:630822228326:web:78e36eb41c50a4412278a7"});
+const auth = getAuth(app);
+const db = getFirestore(app);
+let currentUser = null;
+let allUsers = [];
+let userCounts = {}; // uid -> {records, alerts}
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  currentUser = user;
+  const name = user.displayName || user.email.split('@')[0];
+  document.getElementById('navUserName').textContent = name.split(' ')[0];
+  document.getElementById('drawerUserName').textContent = name;
+  window._currentUid = user.uid;
+});
+
+document.getElementById('btnLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+document.getElementById('drawerLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+
+// ── VERIFY ADMIN PASSWORD (hardcoded) ──
+window.verifyPw = function() {
+  const pwd = document.getElementById('pwInput').value.trim();
+  if (!pwd) { document.getElementById('pwError').textContent = 'Please enter the admin password.'; return; }
+  if (pwd === 'adminaa') {
+    unlockAdmin();
+  } else {
+    document.getElementById('pwError').textContent = 'Incorrect admin password.';
+    document.getElementById('pwInput').value = '';
+  }
+};
+
+function unlockAdmin() {
+  document.getElementById('pwGate').style.display = 'none';
+  document.getElementById('adminContent').style.display = 'block';
+  loadAdminData();
+}
+
+// ── LOAD ADMIN DATA ──
+async function loadAdminData() {
+  try {
+    // Get all users
+    const usersSnap = await getDocs(collection(db,'users'));
+    allUsers = [];
+    usersSnap.forEach(d => allUsers.push({id:d.id,...d.data()}));
+
+    // Get all AQI history records
+    const histSnap = await getDocs(collection(db,'aqi_history'));
+    const alertsSnap = await getDocs(collection(db,'alerts'));
+
+    // Count per user
+    histSnap.forEach(d => {
+      const uid = d.data().uid;
+      if (!userCounts[uid]) userCounts[uid] = {records:0,alerts:0};
+      userCounts[uid].records++;
+    });
+    alertsSnap.forEach(d => {
+      const uid = d.data().uid;
+      if (!userCounts[uid]) userCounts[uid] = {records:0,alerts:0};
+      userCounts[uid].alerts++;
+    });
+
+    // Today's records
+    const today = new Date(); today.setHours(0,0,0,0);
+    let todayCount = 0;
+    histSnap.forEach(d => {
+      const ts = d.data().timestamp?.toDate?.();
+      if (ts && ts >= today) todayCount++;
+    });
+
+    document.getElementById('statUsers').textContent = allUsers.length;
+    document.getElementById('statRecords').textContent = histSnap.size;
+    document.getElementById('statAlerts').textContent = alertsSnap.size;
+    document.getElementById('statToday').textContent = todayCount;
+
+    renderUsersTable(allUsers);
+  } catch(e) {
+    document.getElementById('usersTbody').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:#ef4444">Error loading data: ${e.message}</td></tr>`;
+  }
+}
+
+function renderUsersTable(users) {
+  const tbody = document.getElementById('usersTbody');
+  if (users.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3)">No users found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = users.map((u, i) => {
+    const isMe = u.uid === window._currentUid;
+    const counts = userCounts[u.uid] || {records:0,alerts:0};
+    let dateStr = '—';
+    if (u.createdAt) {
+      try { dateStr = u.createdAt.toDate().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){}
+    }
+    const shortUid = (u.uid||'').substring(0,12)+'...';
+    return `
+      <tr>
+        <td style="color:var(--text3);font-size:0.75rem">${i+1}</td>
+        <td><strong>${u.name||'—'}</strong>${isMe?`<span class="you-badge">You</span>`:''}</td>
+        <td style="font-family:monospace;font-size:0.78rem">${u.email||'—'}</td>
+        <td><span style="font-family:monospace;font-size:0.72rem;color:var(--text3)" title="${u.uid}">${shortUid}</span></td>
+        <td>${dateStr}</td>
+        <td style="text-align:center"><strong>${counts.records}</strong></td>
+        <td style="text-align:center"><strong>${counts.alerts}</strong></td>
+        <td>
+          <button class="btn-del-user" onclick="deleteUserAccount('${u.uid}','${u.email}')" ${isMe?'disabled title="Cannot delete your own account"':''}>
+            <i class="fa-solid fa-trash-can"></i> Delete
+          </button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+window.filterUsers = function() {
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  const filtered = allUsers.filter(u => (u.email||'').toLowerCase().includes(q) || (u.name||'').toLowerCase().includes(q));
+  renderUsersTable(filtered);
+};
+
+window.deleteUserAccount = async function(uid, email) {
+  if (!confirm(`⚠️ Delete user "${email}"?\n\nThis will permanently delete:\n• Their profile\n• All their AQI history\n• All their alerts\n\nThis CANNOT be undone.`)) return;
+  if (!confirm(`Final confirmation: Permanently delete ${email}?`)) return;
+  try {
+    const collections = ['aqi_history','alerts'];
+    for (const col of collections) {
+      const q = query(collection(db,col),where('uid','==',uid));
+      const snap = await getDocs(q);
+      for (const d of snap.docs) await deleteDoc(doc(db,col,d.id));
+    }
+    await deleteDoc(doc(db,'users',uid));
+    allUsers = allUsers.filter(u=>u.uid!==uid);
+    delete userCounts[uid];
+    renderUsersTable(allUsers);
+    document.getElementById('statUsers').textContent = allUsers.length;
+    toast(`User ${email} deleted successfully.`,'success');
+  } catch(e) {
+    toast('Error deleting user: '+e.message,'error');
+  }
+};
+
+window.lockAdmin = function() {
+  document.getElementById('adminContent').style.display = 'none';
+  document.getElementById('pwGate').style.display = 'flex';
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwError').textContent = '';
+};
+
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent=msg; el.className=`toast ${type} show`;
+  setTimeout(()=>el.classList.remove('show'),3500);
+}
+
+window.togglePwVis = function() {
+  const inp=document.getElementById('pwInput');
+  const icon=document.getElementById('pwEyeIcon');
+  inp.type=inp.type==='password'?'text':'password';
+  icon.className=inp.type==='password'?'fa-regular fa-eye':'fa-regular fa-eye-slash';
+};
+</script>
+
+<script>
+const html=document.documentElement;
+let isDark=localStorage.getItem('aa-theme')==='dark';
+function applyTheme(){html.setAttribute('data-theme',isDark?'dark':'light');document.getElementById('themeIcon').className=isDark?'fa-solid fa-moon':'fa-solid fa-sun';}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click',()=>{isDark=!isDark;localStorage.setItem('aa-theme',isDark?'dark':'light');applyTheme();});
+function toggleDrawer(){document.getElementById('mobileDrawer').classList.toggle('open');}
+document.addEventListener('click',e=>{const d=document.getElementById('mobileDrawer'),h=document.getElementById('hamburger');if(d&&h&&!d.contains(e.target)&&!h.contains(e.target))d.classList.remove('open');});
+</script>
+</body>
+</html>

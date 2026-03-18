@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Air Aware — My Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<style>
+:root{--teal:#0d9488;--teal-light:#14b8a6;--teal-dark:#0f766e;--bg:#f1f5f9;--card:#ffffff;--card-border:rgba(0,0,0,0.08);--text:#0f172a;--text2:#475569;--text3:#94a3b8;--nav-bg:rgba(255,255,255,0.95);--nav-border:rgba(0,0,0,0.08);--input-bg:#ffffff;--input-border:#e2e8f0;--shadow:0 4px 24px rgba(0,0,0,0.07);--shadow-lg:0 8px 32px rgba(0,0,0,0.12);}
+[data-theme="dark"]{--teal:#f59e0b;--teal-light:#fbbf24;--teal-dark:#d97706;--bg:#0a0a0f;--card:#1a1a24;--card-border:rgba(255,255,255,0.07);--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;--nav-bg:rgba(10,10,15,0.96);--nav-border:rgba(255,255,255,0.07);--input-bg:#0f0f18;--input-border:rgba(255,255,255,0.1);--shadow:0 4px 24px rgba(0,0,0,0.3);--shadow-lg:0 8px 32px rgba(0,0,0,0.5);}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .4s,color .4s;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);backdrop-filter:blur(16px);height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;}
+.nav-logo{display:flex;align-items:center;gap:7px;text-decoration:none;flex-shrink:0;}
+.nav-logo img{width:26px;height:26px;object-fit:contain;border-radius:6px;}
+.nav-logo span{font-size:1rem;font-weight:700;color:var(--teal);}
+.nav-links{display:flex;align-items:center;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;}
+.nav-links::-webkit-scrollbar{display:none;}
+.nav-link{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;font-size:0.78rem;font-weight:500;color:var(--text2);text-decoration:none;white-space:nowrap;transition:all .2s;}
+.nav-link:hover{background:rgba(13,148,136,0.08);color:var(--teal);}
+.nav-link.active{background:rgba(13,148,136,0.12);color:var(--teal);font-weight:600;}
+[data-theme="dark"] .nav-link:hover,[data-theme="dark"] .nav-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto;}
+.nav-user{display:flex;align-items:center;gap:6px;font-size:0.8rem;font-weight:600;color:var(--text2);}
+.nav-user .dot{width:8px;height:8px;background:#f59e0b;border-radius:50%;}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:none;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:all .2s;}
+.icon-btn:hover{background:var(--card);color:var(--teal);}
+.btn-logout{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--card-border);background:transparent;color:var(--text2);font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;}
+.btn-logout:hover{border-color:#ef4444;color:#ef4444;}
+.hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:4px;}
+.hamburger span{width:20px;height:2px;background:var(--text);border-radius:2px;display:block;}
+.mobile-drawer{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;z-index:999;background:var(--nav-bg);backdrop-filter:blur(16px);padding:16px;flex-direction:column;gap:4px;overflow-y:auto;}
+.mobile-drawer.open{display:flex;}
+.drawer-link{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:0.95rem;font-weight:500;color:var(--text2);text-decoration:none;transition:all .2s;}
+.drawer-link:hover,.drawer-link.active{background:rgba(13,148,136,0.1);color:var(--teal);}
+[data-theme="dark"] .drawer-link:hover,[data-theme="dark"] .drawer-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;}
+.drawer-divider{height:1px;background:var(--card-border);margin:8px 0;}
+.drawer-user{display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:0.95rem;font-weight:600;color:var(--text);}
+.main{padding:72px 16px 100px;max-width:700px;margin:0 auto;}
+
+/* PROFILE HERO */
+.profile-hero{background:var(--card);border:1px solid var(--card-border);border-radius:20px;padding:28px 24px;box-shadow:var(--shadow);margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.avatar-circle{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal-light));display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:white;flex-shrink:0;box-shadow:0 4px 16px rgba(13,148,136,0.3);}
+[data-theme="dark"] .avatar-circle{box-shadow:0 4px 16px rgba(245,158,11,0.3);}
+.profile-info h2{font-size:1.2rem;font-weight:800;color:var(--text);margin-bottom:3px;}
+.profile-info p{font-size:0.82rem;color:var(--text2);}
+.profile-badge{display:inline-block;padding:3px 12px;border-radius:99px;background:rgba(13,148,136,0.1);color:var(--teal);font-size:0.72rem;font-weight:700;margin-top:6px;border:1px solid rgba(13,148,136,0.2);}
+[data-theme="dark"] .profile-badge{background:rgba(245,158,11,0.1);color:#f59e0b;border-color:rgba(245,158,11,0.2);}
+.profile-actions{margin-left:auto;display:flex;gap:8px;}
+
+/* SECTION */
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:20px;padding:22px;box-shadow:var(--shadow);margin-bottom:16px;}
+.section-title{font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group.full{grid-column:1/-1;}
+.form-label{font-size:0.78rem;font-weight:600;color:var(--text2);}
+.form-label .opt{font-size:0.68rem;color:var(--text3);font-weight:400;}
+.form-input{padding:10px 14px;border-radius:12px;border:1.5px solid var(--input-border);background:var(--input-bg);color:var(--text);font-size:0.88rem;font-family:'Outfit',sans-serif;outline:none;transition:all .25s;}
+.form-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,0.1);}
+[data-theme="dark"] .form-input:focus{box-shadow:0 0 0 3px rgba(245,158,11,0.1);}
+.form-input::placeholder{color:var(--text3);}
+.form-input:disabled{opacity:0.6;cursor:not-allowed;background:var(--bg);}
+select.form-input{cursor:pointer;}
+textarea.form-input{resize:vertical;min-height:80px;}
+
+/* SAVED CITIES */
+.cities-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+.city-tag{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:99px;background:rgba(13,148,136,0.08);border:1px solid rgba(13,148,136,0.15);color:var(--teal);font-size:0.78rem;font-weight:600;}
+[data-theme="dark"] .city-tag{background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.15);color:#f59e0b;}
+.city-tag button{background:none;border:none;color:inherit;cursor:pointer;font-size:0.7rem;padding:0;opacity:.7;}
+.city-tag button:hover{opacity:1;}
+
+/* BUTTONS */
+.btn-save{padding:11px 28px;border-radius:12px;border:none;background:var(--teal);color:white;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .25s;display:flex;align-items:center;gap:7px;}
+.btn-save:hover{background:var(--teal-dark);transform:translateY(-1px);box-shadow:0 6px 20px rgba(13,148,136,0.3);}
+.btn-edit{padding:8px 18px;border-radius:10px;border:1.5px solid var(--input-border);background:transparent;color:var(--text2);font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.btn-edit:hover{border-color:var(--teal);color:var(--teal);}
+.btn-danger{padding:8px 18px;border-radius:10px;border:1.5px solid rgba(239,68,68,0.3);background:transparent;color:#ef4444;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.btn-danger:hover{background:rgba(239,68,68,0.05);}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.stat-mini{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:14px;box-shadow:var(--shadow);text-align:center;}
+.stat-mini-val{font-size:1.4rem;font-weight:800;color:var(--teal);margin-bottom:3px;}
+.stat-mini-lbl{font-size:0.72rem;color:var(--text3);}
+
+/* MSG */
+.msg-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:2000;padding:10px 22px;border-radius:99px;font-size:0.85rem;font-weight:600;box-shadow:var(--shadow-lg);opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.msg-toast.show{opacity:1;}
+.msg-toast.success{background:#16a34a;color:white;}
+.msg-toast.error{background:#dc2626;color:white;}
+
+/* CHATBOT */
+.chat-float{position:fixed;bottom:24px;right:20px;z-index:998;}
+.chat-float-btn{width:54px;height:54px;border-radius:50%;background:var(--teal);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(13,148,136,0.45);animation:chatPulse 2.5s ease-in-out infinite;transition:all .3s;}
+.chat-float-btn:hover{transform:scale(1.1);}
+.chat-float-btn i{font-size:1.3rem;color:white;}
+@keyframes chatPulse{0%,100%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 0 rgba(13,148,136,0.3);}50%{box-shadow:0 4px 20px rgba(13,148,136,0.45),0 0 0 10px rgba(13,148,136,0);}}
+.chat-tooltip{position:absolute;bottom:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:6px 12px;font-size:0.75rem;font-weight:600;color:var(--text);white-space:nowrap;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;}
+.chat-float:hover .chat-tooltip{opacity:1;}
+
+@media(max-width:768px){.nav-links,.nav-user,.btn-logout{display:none;}.hamburger{display:flex;}.form-grid{grid-template-columns:1fr;}.stats-row{grid-template-columns:repeat(3,1fr);}profile-actions{margin-left:0;width:100%;}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="dashboard.html" class="nav-logo"><img src="aa.jpeg" alt="Air Aware"/><span>AirAware</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+    <a class="nav-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+    <a class="nav-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+    <a class="nav-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+    <a class="nav-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+    <a class="nav-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+    <a class="nav-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chat</a>
+    <a class="nav-link active" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+    <a class="nav-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  </div>
+  <div class="nav-right">
+    <button class="icon-btn" id="themeToggle"><i class="fa-solid fa-sun" id="themeIcon"></i></button>
+    <div class="nav-user"><span class="dot"></span><span id="navUserName">User</span></div>
+    <button class="btn-logout" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></div>
+</nav>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-user"><span>👋</span><span id="drawerUserName">User</span></div>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+  <a class="drawer-link" href="health.html"><i class="fa-regular fa-heart"></i> Health</a>
+  <a class="drawer-link" href="alerts.html"><i class="fa-regular fa-bell"></i> Alerts</a>
+  <a class="drawer-link" href="map.html"><i class="fa-solid fa-map"></i> Map</a>
+  <a class="drawer-link" href="compare.html"><i class="fa-solid fa-code-compare"></i> Compare</a>
+  <a class="drawer-link" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+  <a class="drawer-link" href="chatbot.html"><i class="fa-solid fa-robot"></i> A4 Chatbot</a>
+  <a class="drawer-link active" href="profile.html"><i class="fa-regular fa-user"></i> Profile</a>
+  <a class="drawer-link" href="admin.html"><i class="fa-regular fa-shield"></i> Admin</a>
+  <div class="drawer-divider"></div>
+  <a class="drawer-link" id="drawerLogout" style="color:#ef4444"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</div>
+
+<div class="msg-toast" id="msgToast"></div>
+
+<div class="main">
+  <!-- PROFILE HERO -->
+  <div class="profile-hero">
+    <div class="avatar-circle" id="avatarCircle">?</div>
+    <div class="profile-info">
+      <h2 id="profileName">Loading...</h2>
+      <p id="profileEmail" style="color:var(--text3)">—</p>
+      <span class="profile-badge">Air Aware Member</span>
+    </div>
+    <div class="profile-actions">
+      <button class="btn-edit" id="btnEdit" onclick="enableEdit()"><i class="fa-solid fa-pen"></i> Edit</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-mini"><div class="stat-mini-val" id="statAlerts">—</div><div class="stat-mini-lbl">Active Alerts</div></div>
+    <div class="stat-mini"><div class="stat-mini-val" id="statHistory">—</div><div class="stat-mini-lbl">AQI Records</div></div>
+    <div class="stat-mini"><div class="stat-mini-val" id="statJoined">—</div><div class="stat-mini-lbl">Member Since</div></div>
+  </div>
+
+  <!-- PERSONAL INFO -->
+  <div class="section-card">
+    <div class="section-title"><i class="fa-regular fa-user" style="color:var(--teal)"></i> Personal Information</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" id="fname" placeholder="Your full name" disabled/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email <span class="opt">(cannot change)</span></label>
+        <input class="form-input" id="femail" placeholder="—" disabled/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number <span class="opt">(optional)</span></label>
+        <input class="form-input" id="fphone" placeholder="+91 XXXXX XXXXX" type="tel" disabled/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date of Birth <span class="opt">(optional)</span></label>
+        <input class="form-input" id="fdob" type="date" disabled/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Gender <span class="opt">(optional)</span></label>
+        <select class="form-input" id="fgender" disabled>
+          <option value="">Prefer not to say</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">City / Location <span class="opt">(optional)</span></label>
+        <input class="form-input" id="fcity" placeholder="e.g. Bengaluru, India" disabled/>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEALTH INFO -->
+  <div class="section-card">
+    <div class="section-title"><i class="fa-regular fa-heart" style="color:#ef4444"></i> Health Information <span style="font-size:0.72rem;color:var(--text3);font-weight:400">(all optional)</span></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Health Condition <span class="opt">(optional)</span></label>
+        <select class="form-input" id="fhealth" disabled>
+          <option value="">None / Healthy</option>
+          <option value="asthma">Asthma</option>
+          <option value="copd">COPD</option>
+          <option value="heart">Heart Condition</option>
+          <option value="allergy">Allergies</option>
+          <option value="pregnant">Pregnant</option>
+          <option value="elderly">Elderly (65+)</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">AQI Alert Threshold</label>
+        <input class="form-input" id="fthreshold" type="number" min="1" max="500" placeholder="150" disabled/>
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Additional Health Notes <span class="opt">(optional)</span></label>
+        <textarea class="form-input" id="fnotes" placeholder="Any notes about your health relevant to air quality..." disabled></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREFERENCES -->
+  <div class="section-card">
+    <div class="section-title"><i class="fa-solid fa-sliders" style="color:var(--teal)"></i> Preferences</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Default City for Dashboard</label>
+        <input class="form-input" id="fdefcity" placeholder="e.g. Bangalore" disabled/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Occupation <span class="opt">(optional)</span></label>
+        <select class="form-input" id="foccupation" disabled>
+          <option value="">Prefer not to say</option>
+          <option value="student">Student</option>
+          <option value="professional">Working Professional</option>
+          <option value="athlete">Athlete / Sports</option>
+          <option value="outdoor">Outdoor Worker</option>
+          <option value="homemaker">Homemaker</option>
+          <option value="retired">Retired</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVE BUTTON -->
+  <div id="saveRow" style="display:none;justify-content:flex-end;gap:10px;margin-top:4px;">
+    <button class="btn-edit" onclick="cancelEdit()">Cancel</button>
+    <button class="btn-save" id="btnSave" onclick="saveProfile()"><i class="fa-solid fa-floppy-disk"></i> Save Profile</button>
+  </div>
+
+  <!-- DANGER ZONE -->
+  <div class="section-card" style="border-color:rgba(239,68,68,0.2);">
+    <div class="section-title" style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</div>
+    <p style="font-size:0.82rem;color:var(--text2);margin-bottom:14px;">Permanently delete your account and all associated data. This action cannot be undone.</p>
+    <button class="btn-danger" onclick="deleteMyAccount()"><i class="fa-solid fa-trash-can"></i> Delete My Account</button>
+  </div>
+</div>
+
+<div class="chat-float">
+  <div class="chat-tooltip">A4 AI Assistant</div>
+  <button class="chat-float-btn" onclick="window.location.href='chatbot.html'"><i class="fa-solid fa-robot"></i></button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+const app = initializeApp({apiKey:"AIzaSyDZO2hrovVxBhXPIpNvk_7AAKcOaUPKcZ4",authDomain:"airaware-3ee4f.firebaseapp.com",projectId:"airaware-3ee4f",storageBucket:"airaware-3ee4f.firebasestorage.app",messagingSenderId:"630822228326",appId:"1:630822228326:web:78e36eb41c50a4412278a7"});
+const auth = getAuth(app);
+const db = getFirestore(app);
+let currentUser = null;
+let userData = {};
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  currentUser = user;
+  const name = user.displayName || user.email.split('@')[0];
+  document.getElementById('navUserName').textContent = name.split(' ')[0];
+  document.getElementById('drawerUserName').textContent = name;
+  await loadProfile(user);
+  loadStats(user.uid);
+});
+
+document.getElementById('btnLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+document.getElementById('drawerLogout').onclick = async () => { await signOut(auth); window.location.href='login.html'; };
+
+async function loadProfile(user) {
+  try {
+    const snap = await getDoc(doc(db,'users',user.uid));
+    userData = snap.exists() ? snap.data() : {};
+    const name = userData.name || user.displayName || user.email.split('@')[0];
+    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('avatarCircle').textContent = initials || '?';
+    document.getElementById('profileName').textContent = name;
+    document.getElementById('profileEmail').textContent = user.email;
+    // Fill form fields
+    const set = (id, val) => { const el=document.getElementById(id); if(el&&val!==undefined) el.value=val||''; };
+    set('fname', name);
+    set('femail', user.email);
+    set('fphone', userData.phone);
+    set('fdob', userData.dob);
+    set('fgender', userData.gender);
+    set('fcity', userData.location);
+    set('fhealth', userData.healthCondition);
+    set('fthreshold', userData.alertThreshold||150);
+    set('fnotes', userData.healthNotes);
+    set('fdefcity', userData.defaultCity);
+    set('foccupation', userData.occupation);
+    // Joined date
+    if (userData.createdAt) {
+      const d = userData.createdAt.toDate ? userData.createdAt.toDate() : new Date(userData.createdAt);
+      document.getElementById('statJoined').textContent = d.toLocaleDateString('en-IN',{month:'short',year:'numeric'});
+    } else {
+      document.getElementById('statJoined').textContent = '—';
+    }
+  } catch(e) { console.error('Load profile error:', e); }
+}
+
+async function loadStats(uid) {
+  try {
+    const aq = query(collection(db,'alerts'),where('uid','==',uid));
+    const hq = query(collection(db,'aqi_history'),where('uid','==',uid));
+    const [as, hs] = await Promise.all([getDocs(aq), getDocs(hq)]);
+    document.getElementById('statAlerts').textContent = as.size;
+    document.getElementById('statHistory').textContent = hs.size;
+  } catch(e) {}
+}
+
+window.saveProfile = async function() {
+  const btn = document.getElementById('btnSave');
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+  btn.disabled = true;
+  try {
+    const updatedData = {
+      name: document.getElementById('fname').value.trim() || userData.name,
+      phone: document.getElementById('fphone').value.trim(),
+      dob: document.getElementById('fdob').value,
+      gender: document.getElementById('fgender').value,
+      location: document.getElementById('fcity').value.trim(),
+      healthCondition: document.getElementById('fhealth').value,
+      alertThreshold: parseInt(document.getElementById('fthreshold').value)||150,
+      healthNotes: document.getElementById('fnotes').value.trim(),
+      defaultCity: document.getElementById('fdefcity').value.trim(),
+      occupation: document.getElementById('foccupation').value,
+      updatedAt: serverTimestamp()
+    };
+    await setDoc(doc(db,'users',currentUser.uid), {...userData, ...updatedData}, {merge:true});
+    userData = {...userData, ...updatedData};
+    const name = updatedData.name;
+    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('avatarCircle').textContent = initials||'?';
+    document.getElementById('profileName').textContent = name;
+    document.getElementById('navUserName').textContent = name.split(' ')[0];
+    disableEdit();
+    toast('Profile saved successfully! ✅','success');
+  } catch(e) {
+    toast('Error saving profile. Try again.','error');
+  }
+  btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Profile';
+  btn.disabled = false;
+};
+
+window.deleteMyAccount = async function() {
+  if (!confirm('⚠️ Are you sure you want to permanently delete your account?\n\nThis will delete:\n• Your profile\n• All your AQI history\n• All your alerts\n\nThis CANNOT be undone.')) return;
+  if (!confirm('Last confirmation: Delete everything permanently?')) return;
+  try {
+    const uid = currentUser.uid;
+    // Delete all user data from Firestore
+    const collections = ['aqi_history','alerts'];
+    for (const col of collections) {
+      const q = query(collection(db,col),where('uid','==',uid));
+      const snap = await getDocs(q);
+      for (const d of snap.docs) await deleteDoc(doc(db,col,d.id));
+    }
+    await deleteDoc(doc(db,'users',uid));
+    await deleteUser(currentUser);
+    window.location.href = 'index.html';
+  } catch(e) {
+    if (e.code === 'auth/requires-recent-login') {
+      toast('Please sign out and sign in again before deleting your account.','error');
+    } else {
+      toast('Error deleting account. Please try again.','error');
+    }
+  }
+};
+
+function toast(msg, type) {
+  const el = document.getElementById('msgToast');
+  el.textContent = msg; el.className = `msg-toast ${type} show`;
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+window.enableEdit = function() {
+  const fields = ['fname','fphone','fdob','fgender','fcity','fhealth','fthreshold','fnotes','fdefcity','foccupation'];
+  fields.forEach(id => { const el=document.getElementById(id); if(el) el.disabled=false; });
+  document.getElementById('saveRow').style.display = 'flex';
+  document.getElementById('btnEdit').style.display = 'none';
+};
+
+window.cancelEdit = function() { disableEdit(); loadProfile(currentUser); };
+
+function disableEdit() {
+  const fields = ['fname','fphone','fdob','fgender','fcity','fhealth','fthreshold','fnotes','fdefcity','foccupation'];
+  fields.forEach(id => { const el=document.getElementById(id); if(el) el.disabled=true; });
+  document.getElementById('saveRow').style.display = 'none';
+  document.getElementById('btnEdit').style.display = 'flex';
+}
+</script>
+<script>
+const html=document.documentElement;
+let isDark=localStorage.getItem('aa-theme')==='dark';
+function applyTheme(){html.setAttribute('data-theme',isDark?'dark':'light');document.getElementById('themeIcon').className=isDark?'fa-solid fa-moon':'fa-solid fa-sun';}
+applyTheme();
+document.getElementById('themeToggle').addEventListener('click',()=>{isDark=!isDark;localStorage.setItem('aa-theme',isDark?'dark':'light');applyTheme();});
+function toggleDrawer(){document.getElementById('mobileDrawer').classList.toggle('open');}
+document.addEventListener('click',e=>{const d=document.getElementById('mobileDrawer'),h=document.getElementById('hamburger');if(d&&h&&!d.contains(e.target)&&!h.contains(e.target))d.classList.remove('open');});
+</script>
+</body>
+</html>
