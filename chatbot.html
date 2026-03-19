@@ -30,7 +30,7 @@
   --suggestion-bg:#1a1a24;--suggestion-border:rgba(255,255,255,0.08);
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;transition:background .4s,color .4s;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);height:100svh;min-height:100vh;display:flex;flex-direction:column;overflow:hidden;transition:background .4s,color .4s;}
 
 /* NAV */
 nav{flex-shrink:0;position:relative;z-index:100;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);backdrop-filter:blur(16px);height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;}
@@ -61,7 +61,7 @@ nav{flex-shrink:0;position:relative;z-index:100;background:var(--nav-bg);border-
 .drawer-user{display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:0.95rem;font-weight:600;color:var(--text);}
 
 /* CHAT LAYOUT */
-.chat-page{flex:1;display:flex;flex-direction:column;max-width:760px;width:100%;margin:0 auto;padding:0 16px;overflow:hidden;}
+.chat-page{flex:1;display:flex;flex-direction:column;max-width:760px;width:100%;margin:0 auto;padding:0 16px;min-height:0;overflow:hidden;}
 
 /* BOT HEADER */
 .bot-header{flex-shrink:0;display:flex;align-items:center;gap:12px;padding:14px 0 10px;}
@@ -87,7 +87,7 @@ nav{flex-shrink:0;position:relative;z-index:100;background:var(--nav-bg);border-
 .btn-ctx-refresh:hover{border-color:var(--teal);color:var(--teal);}
 
 /* MESSAGES */
-.messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:8px 0 4px;scrollbar-width:thin;scrollbar-color:var(--card-border) transparent;}
+.messages{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:8px 0 4px;scrollbar-width:thin;scrollbar-color:var(--card-border) transparent;}
 .messages::-webkit-scrollbar{width:4px;}
 .messages::-webkit-scrollbar-track{background:transparent;}
 .messages::-webkit-scrollbar-thumb{background:var(--card-border);border-radius:2px;}
@@ -136,6 +136,7 @@ nav{flex-shrink:0;position:relative;z-index:100;background:var(--nav-bg);border-
   .nav-links,.nav-user,.btn-logout{display:none;}
   .hamburger{display:flex;}
   .chat-page{padding:0 12px;}
+  .chat-input-row{padding:8px 0 max(16px, env(safe-area-inset-bottom));}
 }
 </style>
 </head>
