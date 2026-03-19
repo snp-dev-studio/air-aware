@@ -30,10 +30,10 @@
   --suggestion-bg:#1a1a24;--suggestion-border:rgba(255,255,255,0.08);
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);height:100svh;min-height:100vh;display:flex;flex-direction:column;overflow:hidden;transition:background .4s,color .4s;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .4s,color .4s;}
 
 /* NAV */
-nav{flex-shrink:0;position:relative;z-index:100;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);backdrop-filter:blur(16px);height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);backdrop-filter:blur(16px);height:56px;display:flex;align-items:center;padding:0 16px;gap:12px;}
 .nav-logo{display:flex;align-items:center;gap:7px;text-decoration:none;flex-shrink:0;}
 .nav-logo img{width:26px;height:26px;object-fit:contain;border-radius:6px;}
 .nav-logo span{font-size:1rem;font-weight:700;color:var(--teal);}
@@ -61,10 +61,10 @@ nav{flex-shrink:0;position:relative;z-index:100;background:var(--nav-bg);border-
 .drawer-user{display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:0.95rem;font-weight:600;color:var(--text);}
 
 /* CHAT LAYOUT */
-.chat-page{flex:1;display:flex;flex-direction:column;max-width:760px;width:100%;margin:0 auto;padding:0 16px;min-height:0;overflow:hidden;}
+.chat-page{display:flex;flex-direction:column;max-width:760px;width:100%;margin:0 auto;padding:0 16px;padding-top:56px;padding-bottom:130px;}
 
 /* BOT HEADER */
-.bot-header{flex-shrink:0;display:flex;align-items:center;gap:12px;padding:14px 0 10px;}
+.bot-header{display:flex;align-items:center;gap:12px;padding:14px 0 10px;}
 .bot-avatar{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--teal),var(--teal-light));display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;box-shadow:0 4px 12px rgba(13,148,136,0.3);}
 [data-theme="dark"] .bot-avatar{box-shadow:0 4px 12px rgba(245,158,11,0.3);}
 .bot-info h2{font-size:1rem;font-weight:800;color:var(--text);}
@@ -87,10 +87,7 @@ nav{flex-shrink:0;position:relative;z-index:100;background:var(--nav-bg);border-
 .btn-ctx-refresh:hover{border-color:var(--teal);color:var(--teal);}
 
 /* MESSAGES */
-.messages{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:8px 0 4px;scrollbar-width:thin;scrollbar-color:var(--card-border) transparent;}
-.messages::-webkit-scrollbar{width:4px;}
-.messages::-webkit-scrollbar-track{background:transparent;}
-.messages::-webkit-scrollbar-thumb{background:var(--card-border);border-radius:2px;}
+.messages{display:flex;flex-direction:column;gap:12px;padding:8px 0 4px;}
 
 /* MESSAGE BUBBLES */
 .msg{display:flex;gap:8px;align-items:flex-end;max-width:88%;}
@@ -113,14 +110,14 @@ nav{flex-shrink:0;position:relative;z-index:100;background:var(--nav-bg);border-
 @keyframes typing{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);}}
 
 /* SUGGESTIONS */
-.suggestions{flex-shrink:0;display:flex;gap:6px;flex-wrap:wrap;padding:8px 0 6px;overflow-x:auto;scrollbar-width:none;}
-.suggestions::-webkit-scrollbar{display:none;}
+.suggestions{display:flex;gap:6px;flex-wrap:wrap;padding:8px 0 6px;}
 .suggestion-chip{padding:6px 13px;border-radius:99px;border:1.5px solid var(--suggestion-border);background:var(--suggestion-bg);color:var(--text2);font-size:0.75rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .2s;font-family:'Outfit',sans-serif;}
 .suggestion-chip:hover{border-color:var(--teal);color:var(--teal);background:rgba(13,148,136,0.05);}
 [data-theme="dark"] .suggestion-chip:hover{border-color:#f59e0b;color:#f59e0b;}
 
-/* INPUT */
-.chat-input-row{flex-shrink:0;display:flex;gap:8px;padding:8px 0 16px;align-items:flex-end;}
+/* INPUT - FIXED AT BOTTOM */
+.chat-input-outer{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--bg);border-top:1px solid var(--card-border);padding:8px 16px;padding-bottom:max(12px, env(safe-area-inset-bottom));backdrop-filter:blur(16px);}
+.chat-input-inner{max-width:760px;margin:0 auto;display:flex;gap:8px;align-items:flex-end;}
 .chat-input-wrap{flex:1;position:relative;}
 #chatInput{width:100%;padding:12px 16px;border-radius:14px;border:1.5px solid var(--input-border);background:var(--input-bg);color:var(--text);font-size:0.9rem;font-family:'Outfit',sans-serif;outline:none;resize:none;max-height:120px;transition:all .25s;line-height:1.5;}
 #chatInput:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,0.1);}
@@ -135,8 +132,8 @@ nav{flex-shrink:0;position:relative;z-index:100;background:var(--nav-bg);border-
 @media(max-width:768px){
   .nav-links,.nav-user,.btn-logout{display:none;}
   .hamburger{display:flex;}
-  .chat-page{padding:0 12px;}
-  .chat-input-row{padding:8px 0 max(16px, env(safe-area-inset-bottom));}
+  .chat-page{padding-left:12px;padding-right:12px;}
+  .chat-input-outer{padding-left:12px;padding-right:12px;}
 }
 </style>
 </head>
@@ -220,8 +217,12 @@ nav{flex-shrink:0;position:relative;z-index:100;background:var(--nav-bg);border-
     <button class="suggestion-chip" onclick="sendSuggestion(this)">Why is AQI high in winters? ❄️</button>
   </div>
 
-  <!-- INPUT -->
-  <div class="chat-input-row">
+  <!-- SPACER for fixed input -->
+</div>
+
+<!-- FIXED BOTTOM INPUT BAR -->
+<div class="chat-input-outer">
+  <div class="chat-input-inner">
     <button class="btn-clear" onclick="clearChat()" title="Clear chat"><i class="fa-regular fa-trash-can"></i></button>
     <div class="chat-input-wrap">
       <textarea id="chatInput" placeholder="Ask A4 anything about air quality..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
@@ -524,7 +525,8 @@ function addMessage(role, text) {
       <div class="msg-time">${now}</div>
     </div>`;
   container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
+  // Scroll to bottom of page
+  setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}), 50);
 }
 
 function formatText(text) {
@@ -542,7 +544,7 @@ function showTyping() {
   div.id = 'typingMsg';
   div.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
   container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
+  setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}), 50);
 }
 function hideTyping() {
   const el = document.getElementById('typingMsg');
